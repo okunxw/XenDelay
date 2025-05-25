@@ -1,47 +1,50 @@
 package net.xenvision.xendelay;
 
-import net.xenvision.xendelay.commands.FakelagCommand;
-import net.xenvision.xendelay.commands.UnlagCommand;
-import net.xenvision.xendelay.commands.XenDelayReloadCommand;
-import net.xenvision.xendelay.listeners.PlayerMovementListener;
+import net.xenvision.xendelay.commands.XenDelayCommand;
+import net.xenvision.xendelay.config.ConfigWatcher;
 import net.xenvision.xendelay.listeners.PlayerActionListener;
+import net.xenvision.xendelay.listeners.PlayerMovementListener;
 import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.LagEffectManager;
-import net.xenvision.xendelay.config.ConfigWatcher;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class XenDelay extends JavaPlugin {
-
     private ConfigManager configManager;
+    private LagEffectManager lagEffectManager;
+    private ConfigWatcher configWatcher;
 
     @Override
     public void onEnable() {
-        getLogger().info("XenDelay успешно запущен.");
+        this.configManager = new ConfigManager(this);
+        this.lagEffectManager = new LagEffectManager(this, configManager);
 
-        // Создаём `config.yml`, если его нет (не перезаписывает)
-        saveDefaultConfig();
+        // Register listeners
+        getServer().getPluginManager().registerEvents(new PlayerActionListener(configManager, lagEffectManager), this);
+        getServer().getPluginManager().registerEvents(new PlayerMovementListener(lagEffectManager), this);
 
-        // Инициализация конфигурации
-        configManager = new ConfigManager(this);
+        // Register command
+        getCommand("xendelay").setExecutor(new XenDelayCommand(configManager, lagEffectManager));
+        getCommand("xendelay").setTabCompleter(new XenDelayCommand(configManager, lagEffectManager));
 
-        // Запуск авто-перезагрузки `config.yml`
-        new ConfigWatcher(this, configManager).startWatching();
+        // Start config watcher
+        this.configWatcher = new ConfigWatcher(this, configManager);
+        this.configWatcher.startWatching();
 
-        // Передаём `ConfigManager` в `LagEffectManager`
-        LagEffectManager.setConfigManager(configManager);
-
-        // Регистрация команд (с проверкой `null`)
-        if (getCommand("fakelag") != null) getCommand("fakelag").setExecutor(new FakelagCommand(configManager));
-        if (getCommand("unfakelag") != null) getCommand("unfakelag").setExecutor(new UnlagCommand(configManager));
-        if (getCommand("xendelay") != null) getCommand("xendelay").setExecutor(new XenDelayReloadCommand(configManager));
-
-        // Регистрация слушателей событий
-        getServer().getPluginManager().registerEvents(new PlayerMovementListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerActionListener(configManager), this);
+        getLogger().info("[XenDelay] Plugin enabled!");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("XenDelay выключен.");
+        if (configWatcher != null) configWatcher.stopWatching();
+        if (lagEffectManager != null) lagEffectManager.removeLagFromAll();
+        getLogger().info("[XenDelay] Plugin disabled!");
+    }
+
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
+
+    public LagEffectManager getLagEffectManager() {
+        return lagEffectManager;
     }
 }

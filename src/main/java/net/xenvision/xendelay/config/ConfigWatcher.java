@@ -7,11 +7,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.io.File;
 import net.xenvision.xendelay.utils.ConfigManager;
 
+/**
+ * Watches for config.yml changes and triggers reloads.
+ */
 public class ConfigWatcher {
     private final JavaPlugin plugin;
     private final Path configPath;
-    private final ConfigManager configManager; // Добавляем ссылку на ConfigManager
-    private boolean running = true;
+    private final ConfigManager configManager;
+    private boolean running = false;
+    private Thread watchThread;
 
     public ConfigWatcher(JavaPlugin plugin, ConfigManager configManager) {
         this.plugin = plugin;
@@ -20,33 +24,42 @@ public class ConfigWatcher {
     }
 
     public void startWatching() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
-                    configPath.getParent().register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
-                    while (running) {
-                        WatchKey key = watchService.take();
-                        for (WatchEvent<?> event : key.pollEvents()) {
-                            if (event.context().toString().equals("config.yml")) {
-                                plugin.getLogger().info("Обнаружено изменение в config.yml, проверка...");
-
-                                File configFile = configPath.toFile();
-                                if (configFile.exists() && configFile.length() > 0) {
-                                    plugin.getLogger().info("config.yml в порядке, перезагружаюсь...");
+        if (running) return;
+        running = true;
+        watchThread = new Thread(() -> {
+            try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
+                configPath.getParent().register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+                while (running) {
+                    WatchKey key = watchService.take();
+                    for (WatchEvent<?> event : key.pollEvents()) {
+                        if (event.context().toString().equals("config.yml")) {
+                            plugin.getLogger().info("[XenDelay] Detected config.yml change, checking...");
+                            File configFile = configPath.toFile();
+                            if (configFile.exists() && configFile.length() > 0) {
+                                plugin.getLogger().info("[XenDelay] config.yml looks fine, reloading...");
+                                plugin.getServer().getScheduler().runTask(plugin, () -> {
                                     plugin.reloadConfig();
-                                    configManager.reloadConfig(); // Теперь конфиг действительно обновляется!
-                                } else {
-                                    plugin.getLogger().severe("Ошибка: config.yml повреждён или пуст!");
-                                }
+                                    configManager.reloadConfig();
+                                });
+                            } else {
+                                plugin.getLogger().severe("[XenDelay] ERROR: config.yml is corrupted or empty!");
                             }
                         }
-                        key.reset();
                     }
-                } catch (IOException | InterruptedException e) {
-                    plugin.getLogger().severe("Ошибка слежения за config.yml: " + e.getMessage());
+                    key.reset();
                 }
+            } catch (IOException | InterruptedException e) {
+                plugin.getLogger().severe("[XenDelay] ConfigWatcher error: " + e.getMessage());
             }
-        }.runTaskAsynchronously(plugin);
+        }, "XenDelay-ConfigWatcher");
+        watchThread.setDaemon(true);
+        watchThread.start();
+    }
+
+    public void stopWatching() {
+        running = false;
+        if (watchThread != null && watchThread.isAlive()) {
+            watchThread.interrupt();
+        }
     }
 }

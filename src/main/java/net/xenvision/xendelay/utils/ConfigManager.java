@@ -1,33 +1,52 @@
 package net.xenvision.xendelay.utils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import java.io.File;
-import org.bukkit.command.CommandSender;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * Handles plugin configuration and localization.
+ */
 public class ConfigManager {
     private final JavaPlugin plugin;
     private FileConfiguration config;
     private FileConfiguration messages;
     private String language;
+    private final Map<String, Long> messageCooldowns = new HashMap<>(); // Throttle for player messages
+
+    private static final long MESSAGE_THROTTLE_MILLIS = 2000;
 
     public ConfigManager(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.config = plugin.getConfig();
+        loadConfig();
+        loadLanguage();
+        ensureLanguageFiles();
+        loadMessages();
+    }
+
+    private void loadConfig() {
         plugin.saveDefaultConfig();
+        File configFile = new File(plugin.getDataFolder(), "config.yml");
+        this.config = YamlConfiguration.loadConfiguration(configFile);
+    }
 
-        language = config.getString("settings.locate", "ru");
+    private void loadLanguage() {
+        this.language = config.getString("settings.locate", "ru");
+    }
 
-        // Проверяем, что папка locate существует
+    private void ensureLanguageFiles() {
         File locateFolder = new File(plugin.getDataFolder(), "locate");
         if (!locateFolder.exists()) {
             locateFolder.mkdirs();
         }
-
-        // Копируем ВСЕ языковые файлы при первом запуске
         String[] availableLanguages = {"ru", "en", "fr"};
         for (String lang : availableLanguages) {
             File messagesFile = new File(plugin.getDataFolder(), "locate/messages_" + lang + ".yml");
@@ -35,51 +54,6 @@ public class ConfigManager {
                 plugin.saveResource("locate/messages_" + lang + ".yml", false);
             }
         }
-
-        // Загружаем язык
-        loadMessages();
-    }
-
-    public FileConfiguration getConfig() {
-        return config;
-    }
-
-    public void sendMessage(CommandSender sender, String key, String... placeholders) {
-        String message = String.join("\n", messages.getStringList("messages." + key));
-        if (message.isEmpty()) {
-            message = "§c[Ошибка] Сообщение не найдено в messages.yml!";
-        }
-
-        // Если отправитель — игрок, заменяем `%player%` его ником
-        if (sender instanceof Player) {
-            message = message.replace("%player%", sender.getName());
-        }
-
-        // Заменяем плейсхолдеры `%1%`, `%2%`, `%3%`
-        for (int i = 0; i < placeholders.length; i++) {
-            message = message.replace("%" + (i + 1) + "%", placeholders[i]);
-        }
-
-        sender.sendMessage(Colorizer.colorize(message));
-    }
-
-    public void reloadConfig() {
-        Bukkit.getLogger().info("Перезагрузка конфигурации...");
-
-        File configFile = new File(plugin.getDataFolder(), "config.yml");
-        if (!configFile.exists()) {
-            Bukkit.getLogger().info("config.yml отсутствует, создаём новый...");
-            plugin.saveResource("config.yml", false);
-        }
-
-        plugin.reloadConfig();
-        this.config = YamlConfiguration.loadConfiguration(configFile);
-
-        language = config.getString("settings.locate", "ru");
-        Bukkit.getLogger().info("Обновленный язык: " + language);
-
-        // Перезагружаем локализацию
-        loadMessages();
     }
 
     private void loadMessages() {
@@ -87,6 +61,67 @@ public class ConfigManager {
         if (!messagesFile.exists()) {
             plugin.saveResource("locate/messages_" + language + ".yml", false);
         }
-        messages = YamlConfiguration.loadConfiguration(messagesFile);
+        this.messages = YamlConfiguration.loadConfiguration(messagesFile);
+    }
+
+    public FileConfiguration getConfig() {
+        return config;
+    }
+
+    /**
+     * Sends a localized, colorized message to a player or console, with throttling.
+     * Placeholders: %player%, %1%, %2%, ...
+     */
+    public void sendMessage(CommandSender sender, String key, String... placeholders) {
+        String baseKey = sender instanceof Player ? ((Player) sender).getUniqueId() + ":" + key : "CONSOLE:" + key;
+        long now = System.currentTimeMillis();
+        if (sender instanceof Player) {
+            if (messageCooldowns.containsKey(baseKey) && now - messageCooldowns.get(baseKey) < MESSAGE_THROTTLE_MILLIS) {
+                return; // throttle
+            }
+            messageCooldowns.put(baseKey, now);
+        }
+        String message = String.join("\n", messages.getStringList("messages." + key));
+        if (message.isEmpty()) {
+            message = "§c[Ошибка] Сообщение не найдено в messages.yml!";
+        }
+        if (sender instanceof Player) {
+            message = message.replace("%player%", sender.getName());
+        }
+        for (int i = 0; i < placeholders.length; i++) {
+            message = message.replace("%" + (i + 1) + "%", placeholders[i]);
+        }
+        sender.sendMessage(Colorizer.colorize(message));
+    }
+
+    /**
+     * Reloads config and messages from disk.
+     */
+    public void reloadConfig() {
+        Bukkit.getLogger().info("§e[§bXenDelay§e] Перезагрузка конфигурации...");
+        loadConfig();
+        loadLanguage();
+        loadMessages();
+        Bukkit.getLogger().info("§a[§bXenDelay§a] Конфиг и сообщения перезагружены. Текущий язык: " + language);
+    }
+
+    /**
+     * Reloads only messages (localization).
+     */
+    public void reloadMessages() {
+        loadMessages();
+        Bukkit.getLogger().info("§a[§bXenDelay§a] Локализация перезагружена. Текущий язык: " + language);
+    }
+
+    /**
+     * Changes language and reloads messages.
+     */
+    public void setLanguage(String lang) {
+        this.language = lang.toLowerCase(Locale.ROOT);
+        loadMessages();
+    }
+
+    public String getLanguage() {
+        return language;
     }
 }

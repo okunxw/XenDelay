@@ -1,65 +1,70 @@
-messages: # Кастомизация сообщений
-  help:
+messages:
+  help_main:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cСписок команд:"
-    - "  §x§c§0§c§0§c§0‣ §x§7§4§5§c§9§7/fakelag <ник> §x§c§0§c§0§c§0- §x§f§c§f§c§f§cактивировать лаги у игрока"
-    - "  §x§c§0§c§0§c§0‣ §x§7§4§5§c§9§7/unfakelag <ник> §x§c§0§c§0§c§0- §x§f§c§f§c§f§cотключить лаги у игрока"
-    - "  §x§c§0§c§0§c§0‣ §x§7§4§5§c§9§7/xendelay reload §x§c§0§c§0§c§0- §x§f§c§f§c§f§cПерезагрузка конфигурации"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cКоманды:"
+    - " §x§c§0§c§0§c§0/xendelay lag <игрок> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cзалагать игрока"
+    - " §x§c§0§c§0§c§0/xendelay unlag <игрок> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cснять лаги"
+    - " §x§c§0§c§0§c§0/xendelay reload §x§c§0§c§0§c§0– §x§f§c§f§c§f§cперезагрузить конфиг"
+    - " §x§c§0§c§0§c§0/xendelay language <код> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cсменить язык"
+    - " §x§c§0§c§0§c§0/xendelay unlagall §x§c§0§c§0§c§0– §x§f§c§f§c§f§cснять лаги со всех"
     - ""
-  lag_enabled:
+  no_permission:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cИгрок §x§d§4§5§0§7§9%player% §x§c§0§c§0§c§0теперь испытывает лаги!"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0У вас нет прав на эту команду."
     - ""
-  lag_disabled:
+  usage_lag:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cИгрок §x§d§4§5§0§7§9%player% §x§c§0§c§0§c§0больше не лагает!"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Используйте: /xendelay lag <игрок>"
     - ""
-  error_usage_lag:
+  usage_unlag:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cИспользование: §x§7§4§5§c§9§7/fakelag <ник>"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Используйте: /xendelay unlag <игрок>"
     - ""
-  error_lag_not_active:
+  usage_language:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cЭтот игрок не испытывает лагов!"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Используйте: /xendelay language <код>"
     - ""
-  error_cannot_lag:
+  player_not_found:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cИгрок §x§d§4§5§0§7§9%player% §x§c§0§c§0§c§0защищён от лагов!"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Игрок §x§d§4§5§0§7§9%1% §x§c§0§c§0§c§0не найден."
     - ""
-  error_no_permission:
+  lag_applied:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cУ вас нет прав на выполнение этой команды!"
-    - " §x§d§4§5§0§7§9Обратитесь к администратору, если считаете, что это ошибка."
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cИгрок §x§d§4§5§0§7§9%1% §x§c§0§c§0§c§0теперь испытывает лаги!"
     - ""
-  error_usage_unlag:
+  lag_removed:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cИспользование: §x§7§4§5§c§9§7/unfakelag <ник>"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cС §x§d§4§5§0§7§9%1% §x§c§0§c§0§c§0сняты лаги."
     - ""
-  error_player_not_found:
+  lag_removed_all:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cИгрок §x§d§4§5§0§7§9не найден!"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cЛаги сняты со всех игроков!"
     - ""
-  error_lag_already_active:
+  reload_success:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cЭтот игрок уже испытывает лаги!"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§a§f§c§f§c§fКонфиг и сообщения перезагружены."
     - ""
-  config_reloaded:
+  language_set:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cКонфигурация успешно перезагружена!"
-    - ""
-  error_usage_reload:
-    - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cИспользование: §x§7§4§5§c§9§7/xendelay reload"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§a§f§c§f§c§fЯзык плагина установлен: §x§d§4§5§0§7§9%1%"
     - ""
   error_interact_blocked:
     - ""
-    - " §x§7§4§5§c§9§7SERVER §x§c§0§c§0§c§0› §x§f§c§f§c§f§cЗадержка ответа сервера..."
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Вы не можете взаимодействовать во время лагов!"
     - ""
   error_attack_blocked:
     - ""
-    - " §x§7§4§5§c§9§7SERVER §x§c§0§c§0§c§0› §x§f§c§f§c§f§cПотеря пакетов! Удар не зарегистрирован."
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Вы не можете атаковать во время лагов!"
     - ""
   error_packet_loss:
     - ""
-    - " §x§7§4§5§c§9§7SERVER §x§c§0§c§0§c§0› §x§f§c§f§c§f§cПотеря пакетов... нестабильное соединение!"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§e§f§c§f§c§fПотеря соединения... (симуляция)"
+    - ""
+  you_are_lagged:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Вы попали под лаги! Ваши действия будут ограничены."
+    - ""
+  you_are_unlagged:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§a§f§c§f§c§fС вас сняты лаги!"
     - ""

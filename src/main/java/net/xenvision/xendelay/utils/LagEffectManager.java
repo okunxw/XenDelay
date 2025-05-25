@@ -2,23 +2,33 @@ package net.xenvision.xendelay.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+/**
+ * Manages lag effects for players.
+ * Uses UUID internally to avoid memory leaks.
+ */
 public class LagEffectManager {
-    private static final Map<Player, BukkitRunnable> lagTasks = new HashMap<>();
-    private static ConfigManager configManager;
-    private static final Set<Player> laggedPlayers = new HashSet<>();
+    private final Plugin plugin;
+    private final ConfigManager configManager;
+    private final Map<UUID, BukkitRunnable> lagTasks = new ConcurrentHashMap<>();
 
-    public static void setConfigManager(ConfigManager manager) {
-        configManager = manager;
+    public LagEffectManager(Plugin plugin, ConfigManager configManager) {
+        this.plugin = plugin;
+        this.configManager = configManager;
     }
 
-    public static void applyLag(Player player) {
-        if (lagTasks.containsKey(player)) {
-            return;
-        }
+    /**
+     * Applies lag effect to player.
+     */
+    public void applyLag(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (lagTasks.containsKey(uuid)) return;
 
         double lagIntensity = configManager.getConfig().getDouble("lag_settings.lag_intensity", 0.7);
         int lagFrequency = configManager.getConfig().getInt("lag_settings.lag_frequency", 20);
@@ -31,43 +41,65 @@ public class LagEffectManager {
 
             @Override
             public void run() {
-                if (!player.isOnline()) {
-                    removeLag(player);
-                    return;
-                }
-
-                if (lagDuration > 0 && timer >= Math.round(lagDuration * 20)) {
-                    removeLag(player);
+                Player p = Bukkit.getPlayer(uuid);
+                if (p == null || !p.isOnline()) {
+                    removeLag(uuid);
                     cancel();
                     return;
                 }
-
-                player.teleport(player.getLocation().add(Math.random() * lagIntensity - (lagIntensity / 2), 0, Math.random() * lagIntensity - (lagIntensity / 2)));
-
-                if (enableLagMessages && Math.random() < lagMessageChance) {
-                    configManager.sendMessage(player, "error_packet_loss", "");
+                if (lagDuration > 0 && timer >= Math.round(lagDuration * 20 / lagFrequency)) {
+                    removeLag(uuid);
+                    cancel();
+                    return;
                 }
-
+                p.teleport(p.getLocation().add(Math.random() * lagIntensity - (lagIntensity / 2), 0, Math.random() * lagIntensity - (lagIntensity / 2)));
+                if (enableLagMessages && Math.random() < lagMessageChance) {
+                    configManager.sendMessage(p, "error_packet_loss", "");
+                }
                 timer++;
             }
         };
-
-        lagTask.runTaskTimer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("XenDelay")), 0L, lagFrequency);
-        lagTasks.put(player, lagTask);
+        lagTask.runTaskTimer(plugin, 0L, lagFrequency);
+        lagTasks.put(uuid, lagTask);
     }
 
-    public static void removeLag(Player player) {
-        if (lagTasks.containsKey(player)) {
-            lagTasks.get(player).cancel();
-            lagTasks.remove(player);
+    /**
+     * Removes lag effect from player.
+     */
+    public void removeLag(Player player) {
+        removeLag(player.getUniqueId());
+    }
+
+    public void removeLag(UUID uuid) {
+        BukkitRunnable task = lagTasks.remove(uuid);
+        if (task != null) {
+            task.cancel();
         }
     }
 
-    public static boolean isLagged(Player player) {
-        return lagTasks.containsKey(player);
+    /**
+     * Removes lag from all players.
+     */
+    public void removeLagFromAll() {
+        for (UUID uuid : new ArrayList<>(lagTasks.keySet())) {
+            removeLag(uuid);
+        }
     }
 
-    public static Set<Player> getLaggedPlayers() {
-        return new HashSet<>(laggedPlayers);
+    /**
+     * Checks if player is lagged.
+     */
+    public boolean isLagged(Player player) {
+        return lagTasks.containsKey(player.getUniqueId());
+    }
+
+    /**
+     * Returns a set of lagged players.
+     */
+    public Set<Player> getLaggedPlayers() {
+        return lagTasks.keySet().stream()
+                .map(Bukkit::getPlayer)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 }
