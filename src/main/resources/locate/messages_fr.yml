@@ -1,0 +1,65 @@
+messages: # Messages personnalisés
+  help:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cListe des commandes:"
+    - "  §x§c§0§c§0§c§0‣ §x§7§4§5§c§9§7/fakelag <joueur> §x§c§0§c§0§c§0- §x§f§c§f§c§f§cActiver le lag pour un joueur"
+    - "  §x§c§0§c§0§c§0‣ §x§7§4§5§c§9§7/unfakelag <joueur> §x§c§0§c§0§c§0- §x§f§c§f§c§f§cDésactiver le lag pour un joueur"
+    - "  §x§c§0§c§0§c§0‣ §x§7§4§5§c§9§7/xendelay reload §x§c§0§c§0§c§0- §x§f§c§f§c§f§cRecharger la configuration"
+    - ""
+  lag_enabled:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9%player% §x§c§0§c§0§c§0subit maintenant des ralentissements !"
+    - ""
+  lag_disabled:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9%player% §x§c§0§c§0§c§0ne subit plus de ralentissements !"
+    - ""
+  error_usage_lag:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cUtilisation: §x§7§4§5§c§9§7/fakelag <joueur>"
+    - ""
+  error_lag_not_active:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cCe joueur ne subit aucun ralentissement !"
+    - ""
+  error_cannot_lag:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9%player% §x§c§0§c§0§c§0est protégé contre les ralentissements!"
+    - ""
+  error_no_permission:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cVous n'avez pas la permission d'exécuter cette commande!"
+    - " §x§d§4§5§0§7§9Contactez un administrateur si vous pensez qu'il s'agit d'une erreur."
+    - ""
+  error_usage_unlag:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cUtilisation: §x§7§4§5§c§9§7/unfakelag <joueur>"
+    - ""
+  error_player_not_found:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9introuvable !"
+    - ""
+  error_lag_already_active:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cCe joueur subit déjà des ralentissements !"
+    - ""
+  config_reloaded:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cConfiguration rechargée avec succès !"
+    - ""
+  error_usage_reload:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cUtilisation: §x§7§4§5§c§9§7/xendelay reload"
+    - ""
+  error_interact_blocked:
+    - ""
+    - " §x§7§4§5§c§9§7SERVEUR §x§c§0§c§0§c§0› §x§f§c§f§c§f§cRéponse du serveur retardée..."
+    - ""
+  error_attack_blocked:
+    - ""
+    - " §x§7§4§5§c§9§7SERVEUR §x§c§0§c§0§c§0› §x§f§c§f§c§f§cPerte de paquets ! Coup non enregistré."
+    - ""
+  error_packet_loss:
+    - ""
+    - " §x§7§4§5§c§9§7SERVEUR §x§c§0§c§0§c§0› §x§f§c§f§c§f§cPerte de paquets... Connexion instable !"
+    - ""

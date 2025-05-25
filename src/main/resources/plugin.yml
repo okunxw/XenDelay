@@ -1,0 +1,29 @@
+name: XenDelay
+version: '${project.version}'
+main: net.xenvision.xendelay.XenDelay
+api-version: '1.16'
+authors: [XenVision]
+commands:
+  fakelag:
+    description: "Вызывает лаги у игрока."
+    usage: "/fakelag <ник>"
+    permission: xendelay.use
+  unfakelag:
+    description: "Убирает лаги у игрока."
+    usage: "/unfakelag <ник>"
+    permission: xendelay.use
+  xendelay:
+    description: "Перезагрузка конфигурации."
+    usage: "/xendelay reload"
+    aliases: ["xd"]
+    permission: xendelay.admin
+permissions:
+  xendelay.use:
+    description: "Использовать команды /fakelag и /unfakelag"
+    default: op
+  xendelay.admin:
+    description: "Перезагружать конфигурацию /xendelay reload"
+    default: op
+  xendelay.bypass:
+    description: "Игрок не может быть подвержен лагам"
+    default: false
