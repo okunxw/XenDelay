@@ -1,65 +1,70 @@
-messages: # Messages personnalisés
-  help:
+messages:
+  help_main:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cListe des commandes:"
-    - "  §x§c§0§c§0§c§0‣ §x§7§4§5§c§9§7/fakelag <joueur> §x§c§0§c§0§c§0- §x§f§c§f§c§f§cActiver le lag pour un joueur"
-    - "  §x§c§0§c§0§c§0‣ §x§7§4§5§c§9§7/unfakelag <joueur> §x§c§0§c§0§c§0- §x§f§c§f§c§f§cDésactiver le lag pour un joueur"
-    - "  §x§c§0§c§0§c§0‣ §x§7§4§5§c§9§7/xendelay reload §x§c§0§c§0§c§0- §x§f§c§f§c§f§cRecharger la configuration"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§f§c§f§c§f§cCommandes :"
+    - " §x§c§4§7§e§f§7/xendelay lag <joueur> §x§c§4§7§e§f§7– §x§f§c§f§c§f§cmettre un joueur sous lag"
+    - " §x§c§4§7§e§f§7/xendelay unlag <joueur> §x§c§4§7§e§f§7– §x§f§c§f§c§f§cenlever le lag d'un joueur"
+    - " §x§c§4§7§e§f§7/xendelay reload §x§c§4§7§e§f§7– §x§f§c§f§c§f§créchager la config du plugin"
+    - " §x§c§4§7§e§f§7/xendelay language <code> §x§c§4§7§e§f§7– §x§f§c§f§c§f§cchanger la langue"
+    - " §x§c§4§7§e§f§7/xendelay unlagall §x§c§4§7§e§f§7– §x§f§c§f§c§f§cenlever le lag de tous"
     - ""
-  lag_enabled:
+  no_permission:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9%player% §x§c§0§c§0§c§0subit maintenant des ralentissements !"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Vous n'avez pas la permission pour cette commande."
     - ""
-  lag_disabled:
+  usage_lag:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9%player% §x§c§0§c§0§c§0ne subit plus de ralentissements !"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Utilisation : /xendelay lag <joueur>"
     - ""
-  error_usage_lag:
+  usage_unlag:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cUtilisation: §x§7§4§5§c§9§7/fakelag <joueur>"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Utilisation : /xendelay unlag <joueur>"
     - ""
-  error_lag_not_active:
+  usage_language:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cCe joueur ne subit aucun ralentissement !"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Utilisation : /xendelay language <code>"
     - ""
-  error_cannot_lag:
+  player_not_found:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9%player% §x§c§0§c§0§c§0est protégé contre les ralentissements!"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Le joueur §x§d§4§5§0§7§9%1% §x§c§4§7§e§f§7est introuvable."
     - ""
-  error_no_permission:
+  lag_applied:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cVous n'avez pas la permission d'exécuter cette commande!"
-    - " §x§d§4§5§0§7§9Contactez un administrateur si vous pensez qu'il s'agit d'une erreur."
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9%1% §x§c§4§7§e§f§7est maintenant sous lag !"
     - ""
-  error_usage_unlag:
+  lag_removed:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cUtilisation: §x§7§4§5§c§9§7/unfakelag <joueur>"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§f§c§f§c§f§cLag retiré de §x§d§4§5§0§7§9%1%§x§c§4§7§e§f§7."
     - ""
-  error_player_not_found:
+  lag_removed_all:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9introuvable !"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§f§c§f§c§f§cLag retiré de tous les joueurs !"
     - ""
-  error_lag_already_active:
+  reload_success:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cCe joueur subit déjà des ralentissements !"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§a§f§c§f§c§fConfig et messages rechargés."
     - ""
-  config_reloaded:
+  language_set:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cConfiguration rechargée avec succès !"
-    - ""
-  error_usage_reload:
-    - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cUtilisation: §x§7§4§5§c§9§7/xendelay reload"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§a§f§c§f§c§fLangue du plugin définie sur : §x§d§4§5§0§7§9%1%"
     - ""
   error_interact_blocked:
     - ""
-    - " §x§7§4§5§c§9§7SERVEUR §x§c§0§c§0§c§0› §x§f§c§f§c§f§cRéponse du serveur retardée..."
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Vous ne pouvez pas interagir pendant un lag !"
     - ""
   error_attack_blocked:
     - ""
-    - " §x§7§4§5§c§9§7SERVEUR §x§c§0§c§0§c§0› §x§f§c§f§c§f§cPerte de paquets ! Coup non enregistré."
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Vous ne pouvez pas attaquer pendant un lag !"
     - ""
   error_packet_loss:
     - ""
-    - " §x§7§4§5§c§9§7SERVEUR §x§c§0§c§0§c§0› §x§f§c§f§c§f§cPerte de paquets... Connexion instable !"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§e§f§c§f§c§fPerte de paquets... (simulation)"
+    - ""
+  you_are_lagged:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Vous êtes sous lag ! Vos actions seront limitées."
+    - ""
+  you_are_unlagged:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§a§f§c§f§c§fLag retiré de vous !"
     - ""

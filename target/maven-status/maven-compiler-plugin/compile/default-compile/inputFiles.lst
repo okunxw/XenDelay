@@ -3,8 +3,6 @@ C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\utils\
 C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\XenDelay.java
 C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\utils\ConfigManager.java
 C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\utils\LagEffectManager.java
-C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\commands\UnlagCommand.java
 C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\config\ConfigWatcher.java
 C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\listeners\PlayerActionListener.java
-C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\commands\FakelagCommand.java
-C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\commands\XenDelayReloadCommand.java
+C:\Users\admin\IdeaProjects\XenDelay\src\main\java\net\xenvision\xendelay\commands\XenDelayCommand.java

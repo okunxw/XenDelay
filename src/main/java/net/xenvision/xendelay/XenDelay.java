@@ -6,6 +6,7 @@ import net.xenvision.xendelay.listeners.PlayerActionListener;
 import net.xenvision.xendelay.listeners.PlayerMovementListener;
 import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.LagEffectManager;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class XenDelay extends JavaPlugin {
@@ -15,6 +16,11 @@ public class XenDelay extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new net.xenvision.xendelay.placeholder.XenDelayExpansion(lagEffectManager).register();
+            getLogger().info("PlaceholderAPI hook registered!");
+        }
+
         this.configManager = new ConfigManager(this);
         this.lagEffectManager = new LagEffectManager(this, configManager);
 
@@ -29,15 +35,13 @@ public class XenDelay extends JavaPlugin {
         // Start config watcher
         this.configWatcher = new ConfigWatcher(this, configManager);
         this.configWatcher.startWatching();
-
-        getLogger().info("[XenDelay] Plugin enabled!");
     }
 
     @Override
     public void onDisable() {
         if (configWatcher != null) configWatcher.stopWatching();
         if (lagEffectManager != null) lagEffectManager.removeLagFromAll();
-        getLogger().info("[XenDelay] Plugin disabled!");
+        getLogger().info("Plugin disabled!");
     }
 
     public ConfigManager getConfigManager() {

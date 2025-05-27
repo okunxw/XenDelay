@@ -1,0 +1,32 @@
+menu:
+  title: "§bXenDelay Lag Manager"
+  size: 36
+  items:
+    players:
+      type: dynamic
+      slot_start: 0
+      slot_end: 26
+      material: PLAYER_HEAD
+      display: "%player_colored%"
+      lore:
+        - "%status%"
+      actions:
+        left: "toggle_lag"
+    unlagall:
+      type: static
+      slot: 30
+      material: BARRIER
+      display: "§cUnlag All"
+      lore:
+        - "Remove lag from all players"
+      actions:
+        left: "unlag_all"
+    reload:
+      type: static
+      slot: 32
+      material: COMMAND_BLOCK
+      display: "§eReload Config"
+      lore:
+        - "Reloads XenDelay config"
+      actions:
+        left: "reload_config"

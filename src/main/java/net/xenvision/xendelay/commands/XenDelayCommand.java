@@ -95,6 +95,17 @@ public class XenDelayCommand implements CommandExecutor, TabCompleter {
             default:
                 sendHelp(sender);
                 break;
+            case "gui":
+                if (!sender.hasPermission("xendelay.gui")) {
+                    configManager.sendMessage(sender, "no_permission");
+                    return true;
+                }
+                if (sender instanceof Player) {
+                    new net.xenvision.xendelay.gui.LagGui(plugin, lagEffectManager, configManager).open((Player) sender);
+                } else {
+                    sender.sendMessage("Only for players.");
+                }
+                break;
         }
         return true;
     }
