@@ -37,45 +37,58 @@ public class MenuBuilder implements Listener {
     public void open(Player admin) {
         FileConfiguration menuConfig = menuManager.getMenuConfig();
         ConfigurationSection menu = menuConfig.getConfigurationSection("menu");
+        if (menu == null) {
+            admin.sendMessage("§c[Ошибка] menu.yml не содержит секцию menu!");
+            return;
+        }
         String title = menu.getString("title", "XenDelay Menu");
         int size = menu.getInt("size", 36);
         Inventory inv = Bukkit.createInventory(null, size, title);
 
         // Dynamic players section
         ConfigurationSection playersSection = menu.getConfigurationSection("items.players");
-        int start = playersSection.getInt("slot_start", 0);
-        int end = playersSection.getInt("slot_end", 8);
-        Material mat = Material.valueOf(playersSection.getString("material", "PLAYER_HEAD"));
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            ItemStack skull = new ItemStack(mat);
-            SkullMeta meta = (SkullMeta) skull.getItemMeta();
-            meta.setOwningPlayer(p);
-            String status = lagEffectManager.isLagged(p) ? "§cLagged" : "§aNormal";
-            String display = playersSection.getString("display", "%player_colored%").replace("%player_colored%", (lagEffectManager.isLagged(p) ? "§c" : "§a") + p.getName());
-            meta.setDisplayName(display);
-            List<String> lore = new ArrayList<>();
-            for (String l : playersSection.getStringList("lore")) {
-                lore.add(l.replace("%status%", status));
+        if (playersSection != null) {
+            int start = playersSection.getInt("slot_start", 0);
+            int end = playersSection.getInt("slot_end", 8);
+            Material mat = Material.valueOf(playersSection.getString("material", "PLAYER_HEAD"));
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                ItemStack skull = new ItemStack(mat);
+                SkullMeta meta = (SkullMeta) skull.getItemMeta();
+                meta.setOwningPlayer(p);
+                String status = lagEffectManager.isLagged(p) ? "§cLagged" : "§aNormal";
+                String display = playersSection.getString("display", "%player_colored%").replace("%player_colored%", (lagEffectManager.isLagged(p) ? "§c" : "§a") + p.getName());
+                meta.setDisplayName(display);
+                List<String> lore = new ArrayList<>();
+                List<String> loreConfig = playersSection.getStringList("lore");
+                if (loreConfig != null && !loreConfig.isEmpty()) {
+                    for (String l : loreConfig) {
+                        lore.add(l.replace("%status%", status));
+                    }
+                }
+                meta.setLore(lore);
+                skull.setItemMeta(meta);
+                int slot = start++;
+                if (slot > end) break;
+                inv.setItem(slot, skull);
             }
-            meta.setLore(lore);
-            skull.setItemMeta(meta);
-            int slot = start++;
-            if (slot > end) break;
-            inv.setItem(slot, skull);
         }
 
         // Static items (unlagall, reload, etc.)
-        for (String key : menu.getConfigurationSection("items").getKeys(false)) {
-            if (key.equals("players")) continue;
-            ConfigurationSection item = menu.getConfigurationSection("items." + key);
-            int slot = item.getInt("slot");
-            Material material = Material.valueOf(item.getString("material", "STONE"));
-            ItemStack stack = new ItemStack(material);
-            ItemMeta meta = stack.getItemMeta();
-            meta.setDisplayName(item.getString("display", key));
-            meta.setLore(item.getStringList("lore"));
-            stack.setItemMeta(meta);
-            inv.setItem(slot, stack);
+        ConfigurationSection itemsSection = menu.getConfigurationSection("items");
+        if (itemsSection != null) {
+            for (String key : itemsSection.getKeys(false)) {
+                if (key.equals("players")) continue;
+                ConfigurationSection item = itemsSection.getConfigurationSection(key);
+                if (item == null) continue;
+                int slot = item.getInt("slot");
+                Material material = Material.valueOf(item.getString("material", "STONE"));
+                ItemStack stack = new ItemStack(material);
+                ItemMeta meta = stack.getItemMeta();
+                meta.setDisplayName(item.getString("display", key));
+                meta.setLore(item.getStringList("lore"));
+                stack.setItemMeta(meta);
+                inv.setItem(slot, stack);
+            }
         }
 
         admin.openInventory(inv);
@@ -83,7 +96,7 @@ public class MenuBuilder implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (!(e.getView().getTitle().contains("XenDelay Lag Manager"))) return;
+        if (!(e.getView().getTitle().contains("XenDelay"))) return;
         e.setCancelled(true);
         Player admin = (Player) e.getWhoClicked();
         ItemStack clicked = e.getCurrentItem();
@@ -118,6 +131,7 @@ public class MenuBuilder implements Listener {
         // Reload Config
         else if (clicked.getType() == Material.COMMAND_BLOCK && name.contains("Reload Config")) {
             configManager.reloadConfig();
+            menuManager.reloadMenu();
             configManager.sendMessage(admin, "reload_success");
             open(admin);
         }

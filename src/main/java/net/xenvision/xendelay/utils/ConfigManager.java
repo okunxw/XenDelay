@@ -68,10 +68,6 @@ public class ConfigManager {
         return config;
     }
 
-    /**
-     * Sends a localized, colorized message to a player or console, with throttling.
-     * Placeholders: %player%, %1%, %2%, ...
-     */
     public void sendMessage(CommandSender sender, String key, String... placeholders) {
         String baseKey = sender instanceof Player ? ((Player) sender).getUniqueId() + ":" + key : "CONSOLE:" + key;
         long now = System.currentTimeMillis();
@@ -94,34 +90,15 @@ public class ConfigManager {
         sender.sendMessage(Colorizer.colorize(message));
     }
 
-    /**
-     * Reloads config and messages from disk.
-     */
     public void reloadConfig() {
-        Bukkit.getLogger().info("§e[§bXenDelay§e] Перезагрузка конфигурации...");
         loadConfig();
         loadLanguage();
+        ensureLanguageFiles();
         loadMessages();
-        Bukkit.getLogger().info("§a[§bXenDelay§a] Конфиг и сообщения перезагружены. Текущий язык: " + language);
     }
 
-    /**
-     * Reloads only messages (localization).
-     */
-    public void reloadMessages() {
-        loadMessages();
-        Bukkit.getLogger().info("§a[§bXenDelay§a] Локализация перезагружена. Текущий язык: " + language);
-    }
-
-    /**
-     * Changes language and reloads messages.
-     */
     public void setLanguage(String lang) {
-        this.language = lang.toLowerCase(Locale.ROOT);
+        this.language = lang;
         loadMessages();
-    }
-
-    public String getLanguage() {
-        return language;
     }
 }

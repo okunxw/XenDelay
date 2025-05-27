@@ -23,6 +23,10 @@ public class MenuManager {
         this.menuConfig = YamlConfiguration.loadConfiguration(file);
     }
 
+    public void reloadMenu() {
+        loadMenu();
+    }
+
     public FileConfiguration getMenuConfig() {
         return menuConfig;
     }

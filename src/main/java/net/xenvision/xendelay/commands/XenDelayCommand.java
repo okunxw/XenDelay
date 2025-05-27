@@ -2,22 +2,25 @@ package net.xenvision.xendelay.commands;
 
 import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.LagEffectManager;
+import net.xenvision.xendelay.gui.MenuBuilder;
+import net.xenvision.xendelay.utils.MenuManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 import java.util.Locale;
 
-/**
- * Handles /xendelay commands: lag, unlag, reload, language.
- */
 public class XenDelayCommand implements CommandExecutor, TabCompleter {
     private final ConfigManager configManager;
     private final LagEffectManager lagEffectManager;
+    private final MenuBuilder menuBuilder;
+    private final MenuManager menuManager;
 
-    public XenDelayCommand(ConfigManager configManager, LagEffectManager lagEffectManager) {
+    public XenDelayCommand(ConfigManager configManager, LagEffectManager lagEffectManager, MenuBuilder menuBuilder, MenuManager menuManager) {
         this.configManager = configManager;
         this.lagEffectManager = lagEffectManager;
+        this.menuBuilder = menuBuilder;
+        this.menuManager = menuManager;
     }
 
     @Override
@@ -92,19 +95,19 @@ public class XenDelayCommand implements CommandExecutor, TabCompleter {
                 lagEffectManager.removeLagFromAll();
                 configManager.sendMessage(sender, "lag_removed_all");
                 break;
-            default:
-                sendHelp(sender);
-                break;
             case "gui":
                 if (!sender.hasPermission("xendelay.gui")) {
                     configManager.sendMessage(sender, "no_permission");
                     return true;
                 }
                 if (sender instanceof Player) {
-                    new net.xenvision.xendelay.gui.LagGui(plugin, lagEffectManager, configManager).open((Player) sender);
+                    menuBuilder.open((Player) sender);
                 } else {
-                    configManager.sendMessage(sender, "player_only");
+                    configManager.sendMessage(sender, "only_players");
                 }
+                break;
+            default:
+                sendHelp(sender);
                 break;
         }
         return true;

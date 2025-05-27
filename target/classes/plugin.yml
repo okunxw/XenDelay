@@ -21,3 +21,5 @@ permissions:
     default: op
   xendelay.unlagall:
     default: op
+  xendelay.gui:
+    default: op
