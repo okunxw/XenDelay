@@ -103,7 +103,7 @@ public class XenDelayCommand implements CommandExecutor, TabCompleter {
                 if (sender instanceof Player) {
                     new net.xenvision.xendelay.gui.LagGui(plugin, lagEffectManager, configManager).open((Player) sender);
                 } else {
-                    sender.sendMessage("Only for players.");
+                    configManager.sendMessage(sender, "player_only");
                 }
                 break;
         }

@@ -2,10 +2,12 @@ package net.xenvision.xendelay;
 
 import net.xenvision.xendelay.commands.XenDelayCommand;
 import net.xenvision.xendelay.config.ConfigWatcher;
+import net.xenvision.xendelay.gui.MenuBuilder;
 import net.xenvision.xendelay.listeners.PlayerActionListener;
 import net.xenvision.xendelay.listeners.PlayerMovementListener;
 import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.LagEffectManager;
+import net.xenvision.xendelay.utils.MenuManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -13,6 +15,8 @@ public class XenDelay extends JavaPlugin {
     private ConfigManager configManager;
     private LagEffectManager lagEffectManager;
     private ConfigWatcher configWatcher;
+    private MenuManager menuManager;
+    private MenuBuilder menuBuilder;
 
     @Override
     public void onEnable() {
@@ -23,6 +27,9 @@ public class XenDelay extends JavaPlugin {
 
         this.configManager = new ConfigManager(this);
         this.lagEffectManager = new LagEffectManager(this, configManager);
+
+        this.menuManager = new MenuManager(this);
+        this.menuBuilder = new MenuBuilder(this, lagEffectManager, configManager, menuManager);
 
         // Register listeners
         getServer().getPluginManager().registerEvents(new PlayerActionListener(configManager, lagEffectManager), this);
