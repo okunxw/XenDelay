@@ -32,6 +32,10 @@ public class MenuBuilder implements Listener {
     // Храним мапу: player -> последний открытый inventory (для action-обработки)
     private final Map<UUID, String> openMenus = new HashMap<>();
 
+    // --- Новый блок: cooldown для админов ---
+    private final Set<UUID> actionCooldown = new HashSet<>();
+    private static final long COOLDOWN_TICKS = 60L; // 3 секунды = 60 тиков
+
     public MenuBuilder(Plugin plugin, LagEffectManager lagEffectManager, ConfigManager configManager, MenuManager menuManager) {
         this.plugin = plugin;
         this.lagEffectManager = lagEffectManager;
@@ -129,10 +133,22 @@ public class MenuBuilder implements Listener {
         String invTitle = e.getView().getTitle();
         // Проверяем, что это наш GUI (лучше по title, чем contains!)
         if (!openMenus.getOrDefault(admin.getUniqueId(), "").equals(invTitle)) return;
+
+        // --- Кулдаун для кликера ---
+        if (actionCooldown.contains(admin.getUniqueId())) {
+            configManager.sendMessage(admin, "cooldown");
+            e.setCancelled(true);
+            return;
+        }
+        actionCooldown.add(admin.getUniqueId());
+
         e.setCancelled(true);
 
         ItemStack clicked = e.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta()) return;
+        if (clicked == null || !clicked.hasItemMeta()) {
+            removeCooldownLater(admin, COOLDOWN_TICKS);
+            return;
+        }
         ItemMeta meta = clicked.getItemMeta();
         String name = meta.getDisplayName();
 
@@ -140,7 +156,10 @@ public class MenuBuilder implements Listener {
         int slot = e.getRawSlot();
         FileConfiguration menuConfig = menuManager.getMenuConfig();
         ConfigurationSection menu = menuConfig.getConfigurationSection("menu");
-        if (menu == null) return;
+        if (menu == null) {
+            removeCooldownLater(admin, COOLDOWN_TICKS);
+            return;
+        }
         ConfigurationSection itemsSection = menu.getConfigurationSection("items");
         String keyAction = null;
         ConfigurationSection itemSection = null;
@@ -166,7 +185,10 @@ public class MenuBuilder implements Listener {
                 }
             }
         }
-        if (itemSection == null) return;
+        if (itemSection == null) {
+            removeCooldownLater(admin, COOLDOWN_TICKS);
+            return;
+        }
 
         // --- Получаем action по клику ---
         ConfigurationSection actions = itemSection.getConfigurationSection("actions");
@@ -195,13 +217,17 @@ public class MenuBuilder implements Listener {
         }
 
         // --- Обработка действий ---
-        if (action == null) return;
+        if (action == null) {
+            removeCooldownLater(admin, COOLDOWN_TICKS);
+            return;
+        }
         switch (action) {
             case "toggle_lag": {
                 String playerName = org.bukkit.ChatColor.stripColor(name);
                 Player target = Bukkit.getPlayerExact(playerName);
                 if (target == null) {
                     configManager.sendMessage(admin, "player_not_found", playerName);
+                    removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
                 }
                 if (!lagEffectManager.isLagged(target)) {
@@ -211,6 +237,7 @@ public class MenuBuilder implements Listener {
                 } else {
                     configManager.sendMessage(admin, "lag_already_applied", target.getName());
                 }
+                removeCooldownLater(admin, COOLDOWN_TICKS);
                 return;
             }
             case "toggle_unlag": {
@@ -218,6 +245,7 @@ public class MenuBuilder implements Listener {
                 Player target = Bukkit.getPlayerExact(playerName);
                 if (target == null) {
                     configManager.sendMessage(admin, "player_not_found", playerName);
+                    removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
                 }
                 if (lagEffectManager.isLagged(target)) {
@@ -226,13 +254,15 @@ public class MenuBuilder implements Listener {
                 } else {
                     configManager.sendMessage(admin, "lag_already_removed", target.getName());
                 }
-                Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin), 1L);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin), 3L);
+                removeCooldownLater(admin, COOLDOWN_TICKS);
                 break;
             }
             case "unlag_all": {
                 lagEffectManager.removeLagFromAll();
                 configManager.sendMessage(admin, "lag_removed_all");
                 Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin), 1L);
+                removeCooldownLater(admin, COOLDOWN_TICKS);
                 break;
             }
             case "reload_config": {
@@ -240,15 +270,22 @@ public class MenuBuilder implements Listener {
                 menuManager.reloadMenu();
                 configManager.sendMessage(admin, "reload_success");
                 Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin), 1L);
+                removeCooldownLater(admin, COOLDOWN_TICKS);
                 break;
             }
             case "close": {
                 admin.closeInventory();
+                removeCooldownLater(admin, COOLDOWN_TICKS);
                 break;
             }
             // Добавляй свои кастомные action'ы здесь!
             default:
                 admin.sendMessage("§e[INFO] Неизвестное действие: " + action);
+                removeCooldownLater(admin, COOLDOWN_TICKS);
         }
+    }
+
+    private void removeCooldownLater(Player admin, long ticks) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> actionCooldown.remove(admin.getUniqueId()), ticks);
     }
 }

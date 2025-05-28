@@ -68,3 +68,7 @@ messages:
     - ""
     - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cPlayer §x§d§4§5§0§7§9%1% §x§c§0§c§0§c§0is already affected by lag!"
     - ""
+  cooldown:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cPlease wait 3 seconds before performing the next action"
+    - ""
