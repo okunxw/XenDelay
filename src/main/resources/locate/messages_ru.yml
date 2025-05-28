@@ -7,6 +7,7 @@ messages:
     - " §x§c§0§c§0§c§0/xendelay reload §x§c§0§c§0§c§0– §x§f§c§f§c§f§cперезагрузить конфиг"
     - " §x§c§0§c§0§c§0/xendelay language <код> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cсменить язык"
     - " §x§c§0§c§0§c§0/xendelay unlagall §x§c§0§c§0§c§0– §x§f§c§f§c§f§cснять лаги со всех"
+    - " §x§c§0§c§0§c§0/xendelay gui §x§c§0§c§0§c§0– §x§f§c§f§c§f§cоткрыть панель управления"
     - ""
   no_permission:
     - ""

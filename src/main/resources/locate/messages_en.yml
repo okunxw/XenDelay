@@ -7,6 +7,7 @@ messages:
     - " §x§3§a§e§c§f§b/xendelay reload §x§3§a§e§c§f§b– §x§f§c§f§c§f§creload plugin config"
     - " §x§3§a§e§c§f§b/xendelay language <code> §x§3§a§e§c§f§b– §x§f§c§f§c§f§cswitch language"
     - " §x§3§a§e§c§f§b/xendelay unlagall §x§3§a§e§c§f§b– §x§f§c§f§c§f§cremove lag from all"
+    - " §x§c§0§c§0§c§0/xendelay gui §x§c§0§c§0§c§0– §x§f§c§f§c§f§copen the control panel"
     - ""
   no_permission:
     - ""
