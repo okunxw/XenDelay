@@ -50,21 +50,21 @@ messages:
     - ""
   error_interact_blocked:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§3§a§e§c§f§b› §x§3§a§e§c§f§bYou cannot interact while lagged!"
+    - " §x§7§4§5§c§9§7SERVER §x§3§a§e§c§f§b› §x§3§a§e§c§f§bYou cannot interact while lagged!"
     - ""
   error_attack_blocked:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§3§a§e§c§f§b› §x§3§a§e§c§f§bYou cannot attack while lagged!"
+    - " §x§7§4§5§c§9§7SERVER §x§3§a§e§c§f§b› §x§3§a§e§c§f§bYou cannot attack while lagged!"
     - ""
   error_packet_loss:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§3§a§e§c§f§b› §x§e§f§c§f§c§fPacket loss... (simulated)"
+    - " §x§7§4§5§c§9§7SERVER §x§3§a§e§c§f§b› §x§e§f§c§f§c§fPacket loss..."
     - ""
-  you_are_lagged:
+  lag_already_removed:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§3§a§e§c§f§b› §x§3§a§e§c§f§bYou have been lagged! Your actions will be restricted."
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cPlayer §x§d§4§5§0§7§9%1% §x§c§0§c§0§c§0is not affected by lag!"
     - ""
-  you_are_unlagged:
+  lag_already_applied:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§3§a§e§c§f§b› §x§a§f§c§f§c§fLag effect removed from you!"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cPlayer §x§d§4§5§0§7§9%1% §x§c§0§c§0§c§0is already affected by lag!"
     - ""

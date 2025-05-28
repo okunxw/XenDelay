@@ -50,21 +50,21 @@ messages:
     - ""
   error_interact_blocked:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Vous ne pouvez pas interagir pendant un lag !"
+    - " §x§7§4§5§c§9§7SERVER §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Vous ne pouvez pas interagir pendant un lag !"
     - ""
   error_attack_blocked:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Vous ne pouvez pas attaquer pendant un lag !"
+    - " §x§7§4§5§c§9§7SERVER §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Vous ne pouvez pas attaquer pendant un lag !"
     - ""
   error_packet_loss:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§e§f§c§f§c§fPerte de paquets... (simulation)"
+    - " §x§7§4§5§c§9§7SERVER §x§c§4§7§e§f§7› §x§e§f§c§f§c§fPerte de paquets..."
     - ""
-  you_are_lagged:
+  lag_already_removed:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§c§4§7§e§f§7Vous êtes sous lag ! Vos actions seront limitées."
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9%1% §x§c§0§c§0§c§0n'est pas affecté par le lag !"
     - ""
-  you_are_unlagged:
+  lag_already_applied:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§a§f§c§f§c§fLag retiré de vous !"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cLe joueur §x§d§4§5§0§7§9%1% §x§c§0§c§0§c§0est déjà affecté par le lag !"
     - ""

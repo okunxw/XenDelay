@@ -1,24 +1,54 @@
 menu:
-  title: '§bXenDelay Lag Manager'
+  title: "&#27e1c1&l⏳ XenDelay › Панель управления"
   size: 36
   items:
     players:
-      slot_start: 0
-      slot_end: 8
+      slot_start: 10
+      slot_end: 16
       material: PLAYER_HEAD
-      display: '%player_colored%'
+      display: "%player_colored%"
       lore:
-        - '§7Status: %status%'
-        - '§7ЛКМ: Снять/выдать лаг'
+        - ""
+        - "&#bfcfd2Статус: %status%"
+        - ""
+        - "&#fdc886&lЛКМ &7→ &#b6ffe6Снять лаги"
+        - "&#fdc886&lПКМ &7→ &#f75c47Выдать лаги"
+        - ""
+        - "&#8d99ae■ &7Управление игроком"
+        - ""
+      actions:
+        left: "toggle_unlag"
+        right: "toggle_lag"
     unlagall:
-      slot: 34
+      slot: 28
       material: BARRIER
-      display: '§cUnlag All'
+      display: "&#f75c47&l■ Снять лаги у всех"
       lore:
-        - '§7Снять лаги со всех'
+        - ""
+        - "&#e86c7aСнять лаги со всех игроков"
+        - ""
+        - "&#ffcfa6&l! &#f0e68c&lВНИМАНИЕ: &#f5c378&lБудьте осторожны"
+        - ""
+      actions:
+        left: "unlag_all"
     reload:
-      slot: 35
+      slot: 34
       material: COMMAND_BLOCK
-      display: '§eReload Config'
+      display: "&#f2d857&l■ Перезагрузить"
       lore:
-        - '§7Перезагрузить конфиг'
+        - ""
+        - "&#a1eaf7Перезагрузить конфиг и меню"
+        - "&#d2c6f5(Изменения применятся сразу)"
+        - ""
+      actions:
+        left: "reload_config"
+    close:
+      slot: 31
+      material: BARRIER
+      display: "&#a2a2a2&l■ Закрыть"
+      lore:
+        - ""
+        - "&#d8d8d8Нажмите для выхода"
+        - ""
+      actions:
+        left: "close"
