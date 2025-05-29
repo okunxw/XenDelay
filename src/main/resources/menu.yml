@@ -1,10 +1,10 @@
 menu:
   title: "&#F45454П&#EE545Aа&#E85460н&#E25466е&#DC546Dл&#D65473ь &#CA547Fу&#C55485п&#BF548Bр&#B95491а&#B35497в&#AD549Eл&#A754A4е&#A154AAн&#9B54B0и&#9554B6я"
-  size: 36
+  size: 54
   items:
     players:
       slot_start: 10
-      slot_end: 16
+      slot_end: 44
       material: PLAYER_HEAD
       display: "%player_colored%"
       lore:
@@ -20,7 +20,7 @@ menu:
         left: "toggle_unlag"
         right: "toggle_lag"
     unlagall:
-      slot: 28
+      slot: 47
       material: BARRIER
       display: "&#f75c47&l■ Снять лаги у всех"
       lore:
@@ -32,7 +32,7 @@ menu:
       actions:
         left: "unlag_all"
     reload:
-      slot: 34
+      slot: 49
       material: COMMAND_BLOCK
       display: "&#f2d857&l■ Перезагрузить"
       lore:
@@ -43,7 +43,7 @@ menu:
       actions:
         left: "reload_config"
     close:
-      slot: 31
+      slot: 51
       material: BARRIER
       display: "&#a2a2a2&l■ Закрыть"
       lore:
@@ -52,3 +52,31 @@ menu:
         - ""
       actions:
         left: "close"
+    page_prev:
+      slot: 0
+      material: ARROW
+      display: "&#f6f6f6← Предыдущая страница"
+      lore:
+        - ""
+        - "&#bfcfd2Листать назад"
+        - ""
+      actions:
+        left: "page_prev"
+    page_info:
+      slot: 4
+      material: PAPER
+      display: "&#b1bdd4Страница %page% из %total%"
+      lore:
+        - ""
+        - "&#bfcfd2Текущая страница"
+        - ""
+    page_next:
+      slot: 8
+      material: ARROW
+      display: "&#f6f6f6→ Следующая страница"
+      lore:
+        - ""
+        - "&#bfcfd2Листать вперёд"
+        - ""
+      actions:
+        left: "page_next"
