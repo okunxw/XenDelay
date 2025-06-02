@@ -1,13 +1,14 @@
 messages:
   help_main:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§c§4§7§e§f§7› §x§f§c§f§c§f§cCommandes :"
-    - " §x§c§4§7§e§f§7/xendelay lag <joueur> §x§c§4§7§e§f§7– §x§f§c§f§c§f§cmettre un joueur sous lag"
-    - " §x§c§4§7§e§f§7/xendelay unlag <joueur> §x§c§4§7§e§f§7– §x§f§c§f§c§f§cenlever le lag d'un joueur"
-    - " §x§c§4§7§e§f§7/xendelay reload §x§c§4§7§e§f§7– §x§f§c§f§c§f§créchager la config du plugin"
-    - " §x§c§4§7§e§f§7/xendelay language <code> §x§c§4§7§e§f§7– §x§f§c§f§c§f§cchanger la langue"
-    - " §x§c§4§7§e§f§7/xendelay unlagall §x§c§4§7§e§f§7– §x§f§c§f§c§f§cenlever le lag de tous"
-    - " §x§c§0§c§0§c§0/xendelay gui §x§c§0§c§0§c§0– §x§f§c§f§c§f§couvrir le panneau de contrôle"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cCommandes :"
+    - " §x§c§0§c§0§c§0/xendelay lag <joueur> §x§c§0§c§0§c§0– §x§f§c§f§c§f§clagger un joueur"
+    - " §x§c§0§c§0§c§0/xendelay unlag <joueur> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cenlever le lag"
+    - " §x§c§0§c§0§c§0/xendelay reload §x§c§0§c§0§c§0– §x§f§c§f§c§f§crécharcher la config"
+    - " §x§c§0§c§0§c§0/xendelay language <code> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cchanger la langue"
+    - " §x§c§0§c§0§c§0/xendelay unlagall §x§c§0§c§0§c§0– §x§f§c§f§c§f§cenlever le lag à tous"
+    - " §x§c§0§c§0§c§0/xendelay gui §x§c§0§c§0§c§0– §x§f§c§f§c§f§couvir le panneau de contrôle"
+    - " §x§c§0§c§0§c§0/xendelay crash <joueur> <entity|sign> §x§c§0§c§0§c§0– §x§f§c§f§c§f§ccrasher un joueur"
     - ""
   no_permission:
     - ""
@@ -72,4 +73,32 @@ messages:
   cooldown:
     - ""
     - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cVeuillez patienter 3 secondes avant d'effectuer la prochaine action"
+    - ""
+  usage_crash:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Utilisez /xendelay crash <nom> <entity ou sign>"
+    - ""
+
+  unknown_crash_type:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Type de crash inconnu : %s"
+    - ""
+
+  crash_success:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0Vous avez crashé le joueur §x§d§4§5§0§7§9%s &a(&e%s&a) avec succès."
+    - ""
+
+  crashed_entity:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0Crash ENTITY §x§d§4§5§0§7§9envoyé §x§c§0§c§0§c§0au joueur §x§d§4§5§0§7§9%s"
+    - ""
+
+  crashed_sign:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0Crash SIGN §x§d§4§5§0§7§9envoyé §x§c§0§c§0§c§0au joueur §x§d§4§5§0§7§9%s"
+    - ""
+  crashed_payload:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0Crash par payload §x§d§4§5§0§7§9PAYLOAD §x§c§0§c§0§c§0envoyé au joueur §x§d§4§5§0§7§9%1%"
     - ""

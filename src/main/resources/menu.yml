@@ -13,12 +13,18 @@ menu:
         - ""
         - "&#fdc886&lЛКМ &7→ &#b6ffe6Снять лаги"
         - "&#fdc886&lПКМ &7→ &#f75c47Выдать лаги"
+        - "&#fdc886&lШИФТ+ПКМ &7→ &#f75c47Крашнуть табличками"
+        - "&#fdc886&lШИФТ+ЛКМ &7→ &#f75c47Крашнуть сущностью"
+        - "&#fdc886&lКОЛЁСИКО &7→ &#f75c47Крашнуть пакетами"
         - ""
         - "&#8d99ae■ &7Управление игроком"
         - ""
       actions:
         left: "toggle_unlag"
         right: "toggle_lag"
+        shift_left: "crash_entity"
+        shift_right: "crash_sign"
+        middle: "crash_payload"
     unlagall:
       slot: 47
       material: BARRIER

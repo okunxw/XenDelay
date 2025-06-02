@@ -7,6 +7,7 @@ import net.xenvision.xendelay.listeners.PlayerMovementListener;
 import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.LagEffectManager;
 import net.xenvision.xendelay.utils.MenuManager;
+import net.xenvision.xendelay.utils.CrashManager; // ДОБАВЛЕНО
 import net.xenvision.xendelay.gui.MenuBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,6 +17,7 @@ public class XenDelay extends JavaPlugin {
     private LagEffectManager lagEffectManager;
     private ConfigWatcher configWatcher;
     private MenuManager menuManager;
+    private CrashManager crashManager;
     private MenuBuilder menuBuilder;
 
     @Override
@@ -23,7 +25,8 @@ public class XenDelay extends JavaPlugin {
         this.configManager = new ConfigManager(this);
         this.lagEffectManager = new LagEffectManager(this, configManager);
         this.menuManager = new MenuManager(this);
-        this.menuBuilder = new MenuBuilder(this, lagEffectManager, configManager, menuManager);
+        this.crashManager = new CrashManager(); // ДОБАВЛЕНО
+        this.menuBuilder = new MenuBuilder(this, lagEffectManager, configManager, menuManager, crashManager);
 
         // PlaceholderAPI
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
@@ -37,7 +40,7 @@ public class XenDelay extends JavaPlugin {
         getServer().getPluginManager().registerEvents(menuBuilder, this);
 
         // Register command
-        XenDelayCommand command = new XenDelayCommand(configManager, lagEffectManager, menuBuilder, menuManager);
+        XenDelayCommand command = new XenDelayCommand(configManager, lagEffectManager, menuBuilder, menuManager, crashManager); // ДОБАВЛЕНО crashManager
         getCommand("xendelay").setExecutor(command);
         getCommand("xendelay").setTabCompleter(command);
 
@@ -60,5 +63,6 @@ public class XenDelay extends JavaPlugin {
         return lagEffectManager;
     }
     public MenuManager getMenuManager() { return menuManager; }
+    public CrashManager getCrashManager() { return crashManager; } // если нужно
     public MenuBuilder getMenuBuilder() { return menuBuilder; }
 }

@@ -4,6 +4,7 @@ import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.LagEffectManager;
 import net.xenvision.xendelay.gui.MenuBuilder;
 import net.xenvision.xendelay.utils.MenuManager;
+import net.xenvision.xendelay.utils.CrashManager; // добавлено
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -20,12 +21,14 @@ public class XenDelayCommand implements CommandExecutor, TabCompleter {
     private final LagEffectManager lagEffectManager;
     private final MenuBuilder menuBuilder;
     private final MenuManager menuManager;
+    private final CrashManager crashManager; // добавлено
 
-    public XenDelayCommand(ConfigManager configManager, LagEffectManager lagEffectManager, MenuBuilder menuBuilder, MenuManager menuManager) {
+    public XenDelayCommand(ConfigManager configManager, LagEffectManager lagEffectManager, MenuBuilder menuBuilder, MenuManager menuManager, CrashManager crashManager) {
         this.configManager = configManager;
         this.lagEffectManager = lagEffectManager;
         this.menuBuilder = menuBuilder;
         this.menuManager = menuManager;
+        this.crashManager = crashManager; // добавлено
     }
 
     @Override
@@ -68,6 +71,34 @@ public class XenDelayCommand implements CommandExecutor, TabCompleter {
                 }
                 lagEffectManager.removeLag(toUnlag);
                 configManager.sendMessage(sender, "lag_removed", toUnlag.getName());
+                break;
+            case "crash":
+                if (!sender.hasPermission("xendelay.crash")) {
+                    configManager.sendMessage(sender, "no_permission");
+                    return true;
+                }
+                if (args.length < 3) {
+                    configManager.sendMessage(sender, "usage_crash");
+                    return true;
+                }
+                Player toCrash = Bukkit.getPlayer(args[1]);
+                if (toCrash == null) {
+                    configManager.sendMessage(sender, "player_not_found", args[1]);
+                    return true;
+                }
+                CrashManager.CrashType type;
+                if (args[2].equalsIgnoreCase("entity")) {
+                    type = CrashManager.CrashType.ENTITY;
+                } else if (args[2].equalsIgnoreCase("sign")) {
+                    type = CrashManager.CrashType.SIGN;
+                } else if (args[2].equalsIgnoreCase("payload")) {
+                    type = CrashManager.CrashType.PAYLOAD;
+                } else {
+                    configManager.sendMessage(sender, "unknown_crash_type", args[2]);
+                    return true;
+                }
+                crashManager.crashPlayer(toCrash, type);
+                configManager.sendMessage(sender, "crash_success", toCrash.getName(), type.toString());
                 break;
             case "reload":
                 if (!sender.hasPermission("xendelay.reload")) {
@@ -130,7 +161,7 @@ public class XenDelayCommand implements CommandExecutor, TabCompleter {
             if (sender.hasPermission("xendelay.language")) options.add("language");
             if (sender.hasPermission("xendelay.unlagall")) options.add("unlagall");
             if (sender.hasPermission("xendelay.gui")) options.add("gui");
-            // Фильтруем по уже введённому куску слова
+            if (sender.hasPermission("xendelay.crash")) options.add("crash"); // добавлено
             if (args[0].isEmpty()) return options;
             String arg = args[0].toLowerCase();
             return options.stream()
@@ -142,6 +173,12 @@ public class XenDelayCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("language") && sender.hasPermission("xendelay.language")) {
             return Arrays.asList("ru", "en", "fr");
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("crash") && sender.hasPermission("xendelay.crash")) {
+            return null; // игроки
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("crash") && sender.hasPermission("xendelay.crash")) {
+            return Arrays.asList("entity", "sign", "payload");
         }
         return Collections.emptyList();
     }

@@ -8,6 +8,7 @@ messages:
     - " §x§c§0§c§0§c§0/xendelay language <код> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cсменить язык"
     - " §x§c§0§c§0§c§0/xendelay unlagall §x§c§0§c§0§c§0– §x§f§c§f§c§f§cснять лаги со всех"
     - " §x§c§0§c§0§c§0/xendelay gui §x§c§0§c§0§c§0– §x§f§c§f§c§f§cоткрыть панель управления"
+    - " §x§c§0§c§0§c§0/xendelay crash <игрок> <entity|sign> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cкрашнуть игрока"
     - ""
   no_permission:
     - ""
@@ -72,4 +73,32 @@ messages:
   cooldown:
     - ""
     - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cПожалуйста, подождите 3 секунды прежде чем выполнять следующее действие"
+    - ""
+  usage_crash:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Используйте /xendelay crash <ник> <entity или sign>"
+    - ""
+
+  unknown_crash_type:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Неизвестный тип краша."
+    - ""
+
+  crash_success:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0Вы успешно крашнули игрока §x§d§4§5§0§7§9%1%"
+    - ""
+
+  crashed_entity:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0Краш через §x§d§4§5§0§7§9ENTITY §x§c§0§c§0§c§0отправлен игроку §x§d§4§5§0§7§9%1%"
+    - ""
+
+  crashed_sign:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0Краш через §x§d§4§5§0§7§9SIGN §x§c§0§c§0§c§0отправлен игроку §x§d§4§5§0§7§9%1%"
+    - ""
+  crashed_payload:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0Краш через §x§d§4§5§0§7§9PAYLOAD §x§c§0§c§0§c§0отправлен игроку §x§d§4§5§0§7§9%1%"
     - ""

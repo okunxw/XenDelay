@@ -1,13 +1,14 @@
 messages:
   help_main:
     - ""
-    - " §x§7§4§5§c§9§7XenDelay §x§3§a§e§c§f§b› §x§f§c§f§c§f§cCommands:"
-    - " §x§3§a§e§c§f§b/xendelay lag <player> §x§3§a§e§c§f§b– §x§f§c§f§c§f§cput a player under lag"
-    - " §x§3§a§e§c§f§b/xendelay unlag <player> §x§3§a§e§c§f§b– §x§f§c§f§c§f§cremove lag from a player"
-    - " §x§3§a§e§c§f§b/xendelay reload §x§3§a§e§c§f§b– §x§f§c§f§c§f§creload plugin config"
-    - " §x§3§a§e§c§f§b/xendelay language <code> §x§3§a§e§c§f§b– §x§f§c§f§c§f§cswitch language"
-    - " §x§3§a§e§c§f§b/xendelay unlagall §x§3§a§e§c§f§b– §x§f§c§f§c§f§cremove lag from all"
-    - " §x§c§0§c§0§c§0/xendelay gui §x§c§0§c§0§c§0– §x§f§c§f§c§f§copen the control panel"
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cCommands:"
+    - " §x§c§0§c§0§c§0/xendelay lag <player> §x§c§0§c§0§c§0– §x§f§c§f§c§f§clag a player"
+    - " §x§c§0§c§0§c§0/xendelay unlag <player> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cremove lag"
+    - " §x§c§0§c§0§c§0/xendelay reload §x§c§0§c§0§c§0– §x§f§c§f§c§f§creload config"
+    - " §x§c§0§c§0§c§0/xendelay language <code> §x§c§0§c§0§c§0– §x§f§c§f§c§f§cswitch language"
+    - " §x§c§0§c§0§c§0/xendelay unlagall §x§c§0§c§0§c§0– §x§f§c§f§c§f§cremove lag from all"
+    - " §x§c§0§c§0§c§0/xendelay gui §x§c§0§c§0§c§0– §x§f§c§f§c§f§copen control panel"
+    - " §x§c§0§c§0§c§0/xendelay crash <player> <entity|sign> §x§c§0§c§0§c§0– §x§f§c§f§c§f§ccrash a player"
     - ""
   no_permission:
     - ""
@@ -72,4 +73,32 @@ messages:
   cooldown:
     - ""
     - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§f§c§f§c§f§cPlease wait 3 seconds before performing the next action"
+    - ""
+  usage_crash:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Use /xendelay crash <name> <entity or sign>"
+    - ""
+
+  unknown_crash_type:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§c§0§c§0§c§0› §x§c§0§c§0§c§0Unknown crash type: %s"
+    - ""
+
+  crash_success:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0You have successfully crashed player §x§d§4§5§0§7§9%s &a(&e%s&a)."
+    - ""
+
+  crashed_entity:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0ENTITY crash §x§d§4§5§0§7§9sent §x§c§0§c§0§c§0to player §x§d§4§5§0§7§9%s"
+    - ""
+
+  crashed_sign:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0SIGN crash §x§d§4§5§0§7§9sent §x§c§0§c§0§c§0to player §x§d§4§5§0§7§9%s"
+    - ""
+  crashed_payload:
+    - ""
+    - " §x§7§4§5§c§9§7XenDelay §x§2§e§d§6§1§e› §x§c§0§c§0§c§0Payload crash §x§d§4§5§0§7§9PAYLOAD §x§c§0§c§0§c§0sent to player §x§d§4§5§0§7§9%1%"
     - ""

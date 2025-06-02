@@ -4,6 +4,7 @@ import net.xenvision.xendelay.utils.LagEffectManager;
 import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.MenuManager;
 import net.xenvision.xendelay.utils.Colorizer;
+import net.xenvision.xendelay.utils.CrashManager; // ДОБАВЛЕНО
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -28,6 +29,7 @@ public class MenuBuilder implements Listener {
     private final ConfigManager configManager;
     private final MenuManager menuManager;
     private final Plugin plugin;
+    private final CrashManager crashManager; // ДОБАВЛЕНО
 
     private final Map<UUID, String> openMenus = new HashMap<>();
     private final Set<UUID> actionCooldown = new HashSet<>();
@@ -39,11 +41,13 @@ public class MenuBuilder implements Listener {
     private static final int PLAYER_SLOT_START = 10;
     private static final int PLAYER_SLOT_END = 45;
 
-    public MenuBuilder(Plugin plugin, LagEffectManager lagEffectManager, ConfigManager configManager, MenuManager menuManager) {
+    // ДОБАВЬ crashManager в конструктор!
+    public MenuBuilder(Plugin plugin, LagEffectManager lagEffectManager, ConfigManager configManager, MenuManager menuManager, CrashManager crashManager) {
         this.plugin = plugin;
         this.lagEffectManager = lagEffectManager;
         this.configManager = configManager;
         this.menuManager = menuManager;
+        this.crashManager = crashManager; // ДОБАВЛЕНО
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
@@ -198,13 +202,12 @@ public class MenuBuilder implements Listener {
             e.setCancelled(true);
             return;
         }
-        actionCooldown.add(admin.getUniqueId());
+        // УБРАНО: actionCooldown.add(admin.getUniqueId());
         e.setCancelled(true);
 
         ItemStack clicked = e.getCurrentItem();
         if (clicked == null || !clicked.hasItemMeta()) {
-            removeCooldownLater(admin, COOLDOWN_TICKS);
-            return;
+            return; // просто return, кулдаун не ставим
         }
         ItemMeta meta = clicked.getItemMeta();
         String name = meta.getDisplayName();
@@ -213,7 +216,6 @@ public class MenuBuilder implements Listener {
         FileConfiguration menuConfig = menuManager.getMenuConfig();
         ConfigurationSection menu = menuConfig.getConfigurationSection("menu");
         if (menu == null) {
-            removeCooldownLater(admin, COOLDOWN_TICKS);
             return;
         }
         ConfigurationSection itemsSection = menu.getConfigurationSection("items");
@@ -230,6 +232,7 @@ public class MenuBuilder implements Listener {
             if (page > 0 && itemsSection.isConfigurationSection("page_prev")) {
                 ConfigurationSection prevSec = itemsSection.getConfigurationSection("page_prev");
                 if (slot == prevSec.getInt("slot", 45)) {
+                    actionCooldown.add(admin.getUniqueId());
                     Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page - 1), 1L);
                     removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
@@ -239,6 +242,7 @@ public class MenuBuilder implements Listener {
             if (page < totalPages - 1 && itemsSection.isConfigurationSection("page_next")) {
                 ConfigurationSection nextSec = itemsSection.getConfigurationSection("page_next");
                 if (slot == nextSec.getInt("slot", 53)) {
+                    actionCooldown.add(admin.getUniqueId());
                     Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page + 1), 1L);
                     removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
@@ -248,6 +252,7 @@ public class MenuBuilder implements Listener {
             if (itemsSection.isConfigurationSection("page_info")) {
                 ConfigurationSection infoSec = itemsSection.getConfigurationSection("page_info");
                 if (slot == infoSec.getInt("slot", 49)) {
+                    actionCooldown.add(admin.getUniqueId());
                     removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
                 }
@@ -274,7 +279,6 @@ public class MenuBuilder implements Listener {
             }
         }
         if (itemSection == null) {
-            removeCooldownLater(admin, COOLDOWN_TICKS);
             return;
         }
 
@@ -304,9 +308,9 @@ public class MenuBuilder implements Listener {
         }
 
         if (action == null) {
-            removeCooldownLater(admin, COOLDOWN_TICKS);
             return;
         }
+        actionCooldown.add(admin.getUniqueId()); // <--- Теперь кулдаун ставится только если действие есть!
         switch (action) {
             case "toggle_lag": {
                 String playerName = org.bukkit.ChatColor.stripColor(name);
@@ -363,6 +367,45 @@ public class MenuBuilder implements Listener {
                 admin.closeInventory();
                 removeCooldownLater(admin, COOLDOWN_TICKS);
                 break;
+            }
+            case "crash_entity": { // ДОБАВЛЕНО
+                String playerName = org.bukkit.ChatColor.stripColor(name);
+                Player target = Bukkit.getPlayerExact(playerName);
+                if (target == null) {
+                    configManager.sendMessage(admin, "player_not_found", playerName);
+                    removeCooldownLater(admin, COOLDOWN_TICKS);
+                    return;
+                }
+                crashManager.crashPlayer(target, CrashManager.CrashType.ENTITY);
+                configManager.sendMessage(admin, "crashed_entity", target.getName());
+                removeCooldownLater(admin, COOLDOWN_TICKS);
+                return;
+            }
+            case "crash_sign": { // ДОБАВЛЕНО
+                String playerName = org.bukkit.ChatColor.stripColor(name);
+                Player target = Bukkit.getPlayerExact(playerName);
+                if (target == null) {
+                    configManager.sendMessage(admin, "player_not_found", playerName);
+                    removeCooldownLater(admin, COOLDOWN_TICKS);
+                    return;
+                }
+                crashManager.crashPlayer(target, CrashManager.CrashType.SIGN);
+                configManager.sendMessage(admin, "crashed_sign", target.getName());
+                removeCooldownLater(admin, COOLDOWN_TICKS);
+                return;
+            }
+            case "crash_payload": { // ДОБАВЛЕНО ДЛЯ MIDDLE
+                String playerName = org.bukkit.ChatColor.stripColor(name);
+                Player target = Bukkit.getPlayerExact(playerName);
+                if (target == null) {
+                    configManager.sendMessage(admin, "player_not_found", playerName);
+                    removeCooldownLater(admin, COOLDOWN_TICKS);
+                    return;
+                }
+                crashManager.crashPlayer(target, CrashManager.CrashType.PAYLOAD);
+                configManager.sendMessage(admin, "crashed_payload", target.getName());
+                removeCooldownLater(admin, COOLDOWN_TICKS);
+                return;
             }
             default:
                 admin.sendMessage("§e[INFO] Неизвестное действие: " + action);

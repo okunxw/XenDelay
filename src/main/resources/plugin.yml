@@ -1,12 +1,14 @@
 name: XenDelay
-version: '2.0.1'
+version: '2.0.2'
 main: net.xenvision.xendelay.XenDelay
 api-version: '1.16'
 authors: [XenVision]
+depend:
+  - packetevents
 commands:
   xendelay:
     description: Управление лагами игроков (/xendelay)
-    usage: /xendelay <lag|unlag|unlagall|reload|language>
+    usage: /xendelay <lag|unlag|unlagall|reload|language|gui|crash>
     permission: xendelay.use
 permissions:
   xendelay.use:
@@ -22,4 +24,6 @@ permissions:
   xendelay.unlagall:
     default: op
   xendelay.gui:
+    default: op
+  xendelay.crash:
     default: op
