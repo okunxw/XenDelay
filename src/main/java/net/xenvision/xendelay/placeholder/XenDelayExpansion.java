@@ -4,8 +4,13 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.xenvision.xendelay.utils.LagEffectManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class XenDelayExpansion extends PlaceholderExpansion {
+
+    private static final String LAGGED_KEY = "lagged";
+    private static final String LAGGED_DISPLAY = "§c✔ Lagged";
+    private static final String NORMAL_DISPLAY = "§a✘ Normal";
     
     private final LagEffectManager lagEffectManager;
 
@@ -29,10 +34,12 @@ public class XenDelayExpansion extends PlaceholderExpansion {
     }
 
     @Override
-    public String onPlaceholderRequest(Player player, String params) {
+    public @Nullable String onPlaceholderRequest(Player player, @NotNull String params) {
         if (player == null) return "";
-        if (params.equalsIgnoreCase("lagged")) {
-            return lagEffectManager.isLagged(player) ? "§c✔ Lagged" : "§a✘ Normal";
+        
+        String normalized = params.toLowerCase();
+        if (LAGGED_KEY.equals(normalized)) {
+            return lagEffectManager.isLagged(player) ? LAGGED_DISPLAY : NORMAL_DISPLAY;
         }
         
         return null;
