@@ -4,7 +4,7 @@ import net.xenvision.xendelay.utils.LagEffectManager;
 import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.MenuManager;
 import net.xenvision.xendelay.utils.Colorizer;
-import net.xenvision.xendelay.utils.CrashManager; // ДОБАВЛЕНО
+import net.xenvision.xendelay.utils.CrashManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -25,29 +25,29 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MenuBuilder implements Listener {
+
     private final LagEffectManager lagEffectManager;
     private final ConfigManager configManager;
     private final MenuManager menuManager;
     private final Plugin plugin;
-    private final CrashManager crashManager; // ДОБАВЛЕНО
+    private final CrashManager crashManager;
 
     private final Map<UUID, String> openMenus = new HashMap<>();
     private final Set<UUID> actionCooldown = new HashSet<>();
     private static final long COOLDOWN_TICKS = 60L;
-    // Для хранения текущей страницы каждого админа
+    // To store each admin's current page
     private final Map<UUID, Integer> adminPages = new HashMap<>();
-    // Кол-во слотов для игроков на одной странице (10..45 включительно = 36)
+    // Number of slots for players on one page (10..45 inclusive = 36)
     private static final int PLAYERS_PER_PAGE = 36;
     private static final int PLAYER_SLOT_START = 10;
     private static final int PLAYER_SLOT_END = 45;
 
-    // ДОБАВЬ crashManager в конструктор!
     public MenuBuilder(Plugin plugin, LagEffectManager lagEffectManager, ConfigManager configManager, MenuManager menuManager, CrashManager crashManager) {
         this.plugin = plugin;
         this.lagEffectManager = lagEffectManager;
         this.configManager = configManager;
         this.menuManager = menuManager;
-        this.crashManager = crashManager; // ДОБАВЛЕНО
+        this.crashManager = crashManager;
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
@@ -69,10 +69,12 @@ public class MenuBuilder implements Listener {
     public void open(Player admin, int page) {
         FileConfiguration menuConfig = menuManager.getMenuConfig();
         ConfigurationSection menu = menuConfig.getConfigurationSection("menu");
+
         if (menu == null) {
             admin.sendMessage("§c[Ошибка] menu.yml не содержит секцию menu!");
             return;
         }
+
         String title = Colorizer.colorize(menu.getString("title", "XenDelay Menu"));
         int size = menu.getInt("size", 54);
         Inventory inv = Bukkit.createInventory(null, size, title);
@@ -85,13 +87,14 @@ public class MenuBuilder implements Listener {
         if (page < 0) page = 0;
         adminPages.put(admin.getUniqueId(), page);
 
-        // --- Динамические игроки с поддержкой страниц ---
+        // Dynamic players with page support
         if (playersSection != null) {
             Material mat = Material.valueOf(playersSection.getString("material", "PLAYER_HEAD"));
             int from = page * PLAYERS_PER_PAGE;
             int to = Math.min(from + PLAYERS_PER_PAGE, onlinePlayers.size());
             List<Player> showPlayers = onlinePlayers.subList(from, to);
             int slot = PLAYER_SLOT_START;
+
             for (Player p : showPlayers) {
                 ItemStack skull = new ItemStack(mat);
                 SkullMeta meta = (SkullMeta) skull.getItemMeta();
@@ -100,13 +103,16 @@ public class MenuBuilder implements Listener {
                 String display = playersSection.getString("display", "%player_colored%")
                         .replace("%player_colored%", (lagEffectManager.isLagged(p) ? Colorizer.colorize("&#f75c47") : Colorizer.colorize("&#27e1c1")) + p.getName());
                 meta.setDisplayName(Colorizer.colorize(display));
+
                 List<String> lore = new ArrayList<>();
                 List<String> loreConfig = playersSection.getStringList("lore");
+
                 if (!loreConfig.isEmpty()) {
                     for (String l : loreConfig) {
                         lore.add(Colorizer.colorize(l.replace("%status%", status)));
                     }
                 }
+
                 meta.setLore(lore);
                 hideFlags(meta);
                 skull.setItemMeta(meta);
@@ -117,7 +123,7 @@ public class MenuBuilder implements Listener {
             }
         }
 
-        // --- Кастомные кнопки страниц ---
+        // Custom page buttons
         ConfigurationSection itemsSection = menu.getConfigurationSection("items");
         if (itemsSection != null) {
             // prev
@@ -125,19 +131,21 @@ public class MenuBuilder implements Listener {
                 ConfigurationSection prevSec = itemsSection.getConfigurationSection("page_prev");
                 inv.setItem(prevSec.getInt("slot", 0), buildPageItem(prevSec, page + 1, totalPages));
             }
+
             // next
             if (totalPages > 1 && page < totalPages - 1 && itemsSection.isConfigurationSection("page_next")) {
                 ConfigurationSection nextSec = itemsSection.getConfigurationSection("page_next");
                 inv.setItem(nextSec.getInt("slot", 8), buildPageItem(nextSec, page + 1, totalPages));
             }
-            // info — ВСЕГДА
+
+            // info — always
             if (itemsSection.isConfigurationSection("page_info")) {
                 ConfigurationSection infoSec = itemsSection.getConfigurationSection("page_info");
                 inv.setItem(infoSec.getInt("slot", 4), buildPageItem(infoSec, page + 1, totalPages));
             }
         }
 
-        // --- Статика (unlagall, reload, close и др.) ---
+        // Static (unlagall, reload, close, etc.)
         if (itemsSection != null) {
             for (String key : itemsSection.getKeys(false)) {
                 if (key.equals("players") || key.startsWith("page_")) continue;
@@ -145,11 +153,12 @@ public class MenuBuilder implements Listener {
                 if (item == null) continue;
                 int slot = item.getInt("slot");
                 if (usedSlots.contains(slot)) continue;
-                // Не даём пересечься с кнопками страниц (45, 49, 53)
+                // Keep the page buttons from crossing over (45, 49, 53)
                 if (isPageSlot(itemsSection, slot)) continue;
                 Material material = Material.valueOf(item.getString("material", "STONE"));
                 ItemStack stack = new ItemStack(material);
                 ItemMeta meta = stack.getItemMeta();
+
                 meta.setDisplayName(Colorizer.colorize(item.getString("display", key)));
                 meta.setLore(item.getStringList("lore").stream().map(Colorizer::colorize).collect(Collectors.toList()));
                 hideFlags(meta);
@@ -162,31 +171,36 @@ public class MenuBuilder implements Listener {
         openMenus.put(admin.getUniqueId(), title);
     }
 
-    // Хелпер для создания предмета страницы с подстановкой %page% и %total%
+    // Helper to create a page item with %page% and %total% substitution
     private ItemStack buildPageItem(ConfigurationSection sec, int page, int total) {
         Material mat = Material.valueOf(sec.getString("material", "PAPER"));
         ItemStack stack = new ItemStack(mat);
         ItemMeta meta = stack.getItemMeta();
         String display = sec.getString("display", "");
         display = display.replace("%page%", String.valueOf(page)).replace("%total%", String.valueOf(total));
+
         meta.setDisplayName(Colorizer.colorize(display));
+
         List<String> lore = new ArrayList<>();
         for (String l : sec.getStringList("lore")) {
             lore.add(Colorizer.colorize(l.replace("%page%", String.valueOf(page)).replace("%total%", String.valueOf(total))));
         }
+
         meta.setLore(lore);
         hideFlags(meta);
         stack.setItemMeta(meta);
+
         return stack;
     }
 
-    // Проверка, не является ли слот одним из page_ секций
+    // Check if the slot is not one of the page_ sections
     private boolean isPageSlot(ConfigurationSection itemsSection, int slot) {
         for (String key : itemsSection.getKeys(false)) {
             if (!key.startsWith("page_")) continue;
             ConfigurationSection sec = itemsSection.getConfigurationSection(key);
             if (sec != null && sec.getInt("slot") == slot) return true;
         }
+
         return false;
     }
 
@@ -202,22 +216,25 @@ public class MenuBuilder implements Listener {
             e.setCancelled(true);
             return;
         }
-        // УБРАНО: actionCooldown.add(admin.getUniqueId());
+
         e.setCancelled(true);
 
         ItemStack clicked = e.getCurrentItem();
         if (clicked == null || !clicked.hasItemMeta()) {
-            return; // просто return, кулдаун не ставим
+            return;
         }
+
         ItemMeta meta = clicked.getItemMeta();
         String name = meta.getDisplayName();
 
         int slot = e.getRawSlot();
         FileConfiguration menuConfig = menuManager.getMenuConfig();
         ConfigurationSection menu = menuConfig.getConfigurationSection("menu");
+    
         if (menu == null) {
             return;
         }
+        
         ConfigurationSection itemsSection = menu.getConfigurationSection("items");
         String keyAction = null;
         ConfigurationSection itemSection = null;
@@ -226,7 +243,7 @@ public class MenuBuilder implements Listener {
         List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
         int totalPages = (int) Math.max(1, Math.ceil((double) onlinePlayers.size() / PLAYERS_PER_PAGE));
 
-        // --- Обработка кастомных page_ кнопок ---
+        // Processing of custom page_buttons
         if (itemsSection != null) {
             // prev
             if (page > 0 && itemsSection.isConfigurationSection("page_prev")) {
@@ -238,6 +255,7 @@ public class MenuBuilder implements Listener {
                     return;
                 }
             }
+            
             // next
             if (page < totalPages - 1 && itemsSection.isConfigurationSection("page_next")) {
                 ConfigurationSection nextSec = itemsSection.getConfigurationSection("page_next");
@@ -248,7 +266,8 @@ public class MenuBuilder implements Listener {
                     return;
                 }
             }
-            // info -- обычно ничего не делает, просто return
+            
+            // info -- doesn't usually do anything, just return
             if (itemsSection.isConfigurationSection("page_info")) {
                 ConfigurationSection infoSec = itemsSection.getConfigurationSection("page_info");
                 if (slot == infoSec.getInt("slot", 49)) {
@@ -259,7 +278,7 @@ public class MenuBuilder implements Listener {
             }
         }
 
-        // --- Динамические игроки ---
+        // Dynamic players
         assert itemsSection != null;
         ConfigurationSection playersSection = itemsSection.getConfigurationSection("players");
         assert playersSection != null;
@@ -271,6 +290,7 @@ public class MenuBuilder implements Listener {
             for (String key : itemsSection.getKeys(false)) {
                 if (key.equals("players") || key.startsWith("page_")) continue;
                 ConfigurationSection it = itemsSection.getConfigurationSection(key);
+
                 if (it != null && it.getInt("slot") == slot) {
                     itemSection = it;
                     keyAction = key;
@@ -278,6 +298,7 @@ public class MenuBuilder implements Listener {
                 }
             }
         }
+
         if (itemSection == null) {
             return;
         }
@@ -285,6 +306,7 @@ public class MenuBuilder implements Listener {
         ConfigurationSection actions = itemSection.getConfigurationSection("actions");
         String action = null;
         ClickType click = e.getClick();
+        
         if (actions != null) {
             switch (click) {
                 case LEFT:
@@ -310,16 +332,21 @@ public class MenuBuilder implements Listener {
         if (action == null) {
             return;
         }
-        actionCooldown.add(admin.getUniqueId()); // <--- Теперь кулдаун ставится только если действие есть!
+
+        // Now the cooldown is only set if there is an action
+        actionCooldown.add(admin.getUniqueId());
+
         switch (action) {
             case "toggle_lag": {
                 String playerName = org.bukkit.ChatColor.stripColor(name);
                 Player target = Bukkit.getPlayerExact(playerName);
+                
                 if (target == null) {
                     configManager.sendMessage(admin, "player_not_found", playerName);
                     removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
                 }
+                
                 if (!lagEffectManager.isLagged(target)) {
                     lagEffectManager.applyLag(target);
                     configManager.sendMessage(admin, "lag_applied", target.getName());
@@ -327,27 +354,33 @@ public class MenuBuilder implements Listener {
                 } else {
                     configManager.sendMessage(admin, "lag_already_applied", target.getName());
                 }
+                
                 removeCooldownLater(admin, COOLDOWN_TICKS);
                 return;
             }
+                
             case "toggle_unlag": {
                 String playerName = org.bukkit.ChatColor.stripColor(name);
                 Player target = Bukkit.getPlayerExact(playerName);
+                
                 if (target == null) {
                     configManager.sendMessage(admin, "player_not_found", playerName);
                     removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
                 }
+                
                 if (lagEffectManager.isLagged(target)) {
                     lagEffectManager.removeLag(target);
                     configManager.sendMessage(admin, "lag_removed", target.getName());
                 } else {
                     configManager.sendMessage(admin, "lag_already_removed", target.getName());
                 }
+                
                 Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page), 3L);
                 removeCooldownLater(admin, COOLDOWN_TICKS);
                 break;
             }
+                
             case "unlag_all": {
                 lagEffectManager.removeLagFromAll();
                 configManager.sendMessage(admin, "lag_removed_all");
@@ -355,6 +388,7 @@ public class MenuBuilder implements Listener {
                 removeCooldownLater(admin, COOLDOWN_TICKS);
                 break;
             }
+                
             case "reload_config": {
                 configManager.reloadConfig();
                 menuManager.reloadMenu();
@@ -363,50 +397,61 @@ public class MenuBuilder implements Listener {
                 removeCooldownLater(admin, COOLDOWN_TICKS);
                 break;
             }
+                
             case "close": {
                 admin.closeInventory();
                 removeCooldownLater(admin, COOLDOWN_TICKS);
                 break;
             }
-            case "crash_entity": { // ДОБАВЛЕНО
+                
+            case "crash_entity": {
                 String playerName = org.bukkit.ChatColor.stripColor(name);
                 Player target = Bukkit.getPlayerExact(playerName);
+                
                 if (target == null) {
                     configManager.sendMessage(admin, "player_not_found", playerName);
                     removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
                 }
+                
                 crashManager.crashPlayer(target, CrashManager.CrashType.ENTITY);
                 configManager.sendMessage(admin, "crashed_entity", target.getName());
                 removeCooldownLater(admin, COOLDOWN_TICKS);
                 return;
             }
-            case "crash_sign": { // ДОБАВЛЕНО
+                
+            case "crash_sign": {
                 String playerName = org.bukkit.ChatColor.stripColor(name);
                 Player target = Bukkit.getPlayerExact(playerName);
+                
                 if (target == null) {
                     configManager.sendMessage(admin, "player_not_found", playerName);
                     removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
                 }
+                
                 crashManager.crashPlayer(target, CrashManager.CrashType.SIGN);
                 configManager.sendMessage(admin, "crashed_sign", target.getName());
                 removeCooldownLater(admin, COOLDOWN_TICKS);
                 return;
             }
-            case "crash_payload": { // ДОБАВЛЕНО ДЛЯ MIDDLE
+                
+            case "crash_payload": {
                 String playerName = org.bukkit.ChatColor.stripColor(name);
                 Player target = Bukkit.getPlayerExact(playerName);
+                
                 if (target == null) {
                     configManager.sendMessage(admin, "player_not_found", playerName);
                     removeCooldownLater(admin, COOLDOWN_TICKS);
                     return;
                 }
+                
                 crashManager.crashPlayer(target, CrashManager.CrashType.PAYLOAD);
                 configManager.sendMessage(admin, "crashed_payload", target.getName());
                 removeCooldownLater(admin, COOLDOWN_TICKS);
                 return;
             }
+                
             default:
                 admin.sendMessage("§e[INFO] Неизвестное действие: " + action);
                 removeCooldownLater(admin, COOLDOWN_TICKS);
