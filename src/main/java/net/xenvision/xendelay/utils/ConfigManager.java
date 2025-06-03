@@ -16,6 +16,7 @@ import java.util.Map;
  * Handles plugin configuration and localization.
  */
 public class ConfigManager {
+    
     private final JavaPlugin plugin;
     private FileConfiguration config;
     private FileConfiguration messages;
@@ -44,12 +45,15 @@ public class ConfigManager {
 
     private void ensureLanguageFiles() {
         File locateFolder = new File(plugin.getDataFolder(), "locate");
+        
         if (!locateFolder.exists()) {
             locateFolder.mkdirs();
         }
+        
         String[] availableLanguages = {"ru", "en", "fr"};
         for (String lang : availableLanguages) {
             File messagesFile = new File(plugin.getDataFolder(), "locate/messages_" + lang + ".yml");
+            
             if (!messagesFile.exists() && plugin.getResource("locate/messages_" + lang + ".yml") != null) {
                 plugin.saveResource("locate/messages_" + lang + ".yml", false);
             }
@@ -58,9 +62,11 @@ public class ConfigManager {
 
     private void loadMessages() {
         File messagesFile = new File(plugin.getDataFolder(), "locate/messages_" + language + ".yml");
+        
         if (!messagesFile.exists()) {
             plugin.saveResource("locate/messages_" + language + ".yml", false);
         }
+        
         this.messages = YamlConfiguration.loadConfiguration(messagesFile);
     }
 
@@ -71,22 +77,28 @@ public class ConfigManager {
     public void sendMessage(CommandSender sender, String key, String... placeholders) {
         String baseKey = sender instanceof Player ? ((Player) sender).getUniqueId() + ":" + key : "CONSOLE:" + key;
         long now = System.currentTimeMillis();
+        
         if (sender instanceof Player) {
             if (messageCooldowns.containsKey(baseKey) && now - messageCooldowns.get(baseKey) < MESSAGE_THROTTLE_MILLIS) {
-                return; // throttle
+                return; // Throttle
             }
+            
             messageCooldowns.put(baseKey, now);
         }
+        
         String message = String.join("\n", messages.getStringList("messages." + key));
         if (message.isEmpty()) {
             message = "§c[Ошибка] Сообщение не найдено в messages.yml!";
         }
+        
         if (sender instanceof Player) {
             message = message.replace("%player%", sender.getName());
         }
+        
         for (int i = 0; i < placeholders.length; i++) {
             message = message.replace("%" + (i + 1) + "%", placeholders[i]);
         }
+        
         sender.sendMessage(Colorizer.colorize(message));
     }
 
