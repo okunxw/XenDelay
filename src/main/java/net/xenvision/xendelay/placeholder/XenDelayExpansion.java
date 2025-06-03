@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class XenDelayExpansion extends PlaceholderExpansion {
+    
     private final LagEffectManager lagEffectManager;
 
     public XenDelayExpansion(LagEffectManager lagEffectManager) {
@@ -33,6 +34,7 @@ public class XenDelayExpansion extends PlaceholderExpansion {
         if (params.equalsIgnoreCase("lagged")) {
             return lagEffectManager.isLagged(player) ? "§c✔ Lagged" : "§a✘ Normal";
         }
+        
         return null;
     }
 }
