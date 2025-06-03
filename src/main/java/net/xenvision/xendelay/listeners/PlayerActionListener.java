@@ -11,7 +11,8 @@ import org.bukkit.entity.Player;
 /**
  * Handles blocking actions (interact/attack) for lagged players, with messaging throttle.
  */
-public class PlayerActionListener implements Listener {
+public class PlayerActionListener implements Listener 
+
     private final ConfigManager configManager;
     private final LagEffectManager lagEffectManager;
 
@@ -23,8 +24,10 @@ public class PlayerActionListener implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
+        
         if (lagEffectManager.isLagged(player)) {
             event.setCancelled(true);
+            
             boolean enableLagMessages = configManager.getConfig().getBoolean("lag_settings.enable_lag_messages", true);
             if (enableLagMessages) {
                 configManager.sendMessage(player, "error_interact_blocked");
@@ -36,8 +39,10 @@ public class PlayerActionListener implements Listener {
     public void onPlayerAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player)) return;
         Player player = (Player) event.getDamager();
+        
         if (lagEffectManager.isLagged(player)) {
             event.setCancelled(true);
+            
             boolean enableLagMessages = configManager.getConfig().getBoolean("lag_settings.enable_lag_messages", true);
             if (enableLagMessages) {
                 configManager.sendMessage(player, "error_attack_blocked");
