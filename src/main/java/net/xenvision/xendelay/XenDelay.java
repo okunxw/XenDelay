@@ -4,13 +4,11 @@ import net.xenvision.xendelay.commands.XenDelayCommand;
 import net.xenvision.xendelay.config.ConfigWatcher;
 import net.xenvision.xendelay.listeners.PlayerActionListener;
 import net.xenvision.xendelay.listeners.PlayerMovementListener;
-import net.xenvision.xendelay.utils.ConfigManager;
-import net.xenvision.xendelay.utils.LagEffectManager;
-import net.xenvision.xendelay.utils.MenuManager;
-import net.xenvision.xendelay.utils.CrashManager;
+import net.xenvision.xendelay.utils.*;
 import net.xenvision.xendelay.gui.MenuBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import java.util.logging.Level;
 
 public class XenDelay extends JavaPlugin {
 
@@ -23,57 +21,98 @@ public class XenDelay extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // Initialize core components
         this.configManager = new ConfigManager(this);
         this.lagEffectManager = new LagEffectManager(this, configManager);
+        
+        // Initialize optional components
         this.menuManager = new MenuManager(this);
         this.crashManager = new CrashManager();
-        this.menuBuilder = new MenuBuilder(this, lagEffectManager, configManager, menuManager, crashManager);
+        this.menuBuilder = new MenuBuilder(
+            this, 
+            lagEffectManager, 
+            configManager, 
+            menuManager, 
+            crashManager
+        );
 
-        // Register PlaceholderAPI
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            new XenDelayExpansion(lagEffectManager).register();
-            getLogger().info("PlaceholderAPI hook registered!");
-        }
+        // Register PlaceholderAPI if available
+        registerPlaceholderAPI();
 
-        // Register listeners
-        getServer().getPluginManager().registerEvents(new PlayerActionListener(configManager, lagEffectManager), this);
-        getServer().getPluginManager().registerEvents(new PlayerMovementListener(lagEffectManager), this);
-        getServer().getPluginManager().registerEvents(menuBuilder, this);
+        // Register event listeners
+        registerListeners();
 
-        // Register command
-        XenDelayCommand command = new XenDelayCommand(configManager, lagEffectManager, menuBuilder, menuManager, crashManager);
-        getCommand("xendelay").setExecutor(command);
-        getCommand("xendelay").setTabCompleter(command);
+        // Register commands
+        registerCommands();
 
-        // Start config watcher
-        this.configWatcher = new ConfigWatcher(this, configManager);
-        this.configWatcher.startWatching();
+        // Set up configuration file watcher
+        setupConfigWatcher();
+        
+        getLogger().info("Plugin enabled successfully!");
     }
 
     @Override
     public void onDisable() {
-        if (configWatcher != null) configWatcher.stopWatching();
-        if (lagEffectManager != null) lagEffectManager.removeLagFromAll();
+        // Stop configuration file watcher
+        if (configWatcher != null) {
+            configWatcher.stopWatching();
+        }
+        
+        // Remove all active lag effects
+        if (lagEffectManager != null) {
+            lagEffectManager.removeLagFromAll();
+        }
+        
         getLogger().info("Plugin disabled!");
     }
 
+    private void registerPlaceholderAPI() {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new XenDelayExpansion(lagEffectManager).register();
+            getLogger().info("PlaceholderAPI integration registered!");
+        }
+    }
+
+    private void registerListeners() {
+        var pluginManager = getServer().getPluginManager();
+        
+        pluginManager.registerEvents(
+            new PlayerActionListener(configManager, lagEffectManager), 
+            this
+        );
+        
+        pluginManager.registerEvents(
+            new PlayerMovementListener(lagEffectManager), 
+            this
+        );
+        
+        pluginManager.registerEvents(menuBuilder, this);
+    }
+
+    private void registerCommands() {
+        XenDelayCommand command = new XenDelayCommand(
+            configManager, 
+            lagEffectManager, 
+            menuBuilder, 
+            menuManager,
+            crashManager
+        );
+        
+        getCommand("xendelay").setExecutor(command);
+        getCommand("xendelay").setTabCompleter(command);
+    }
+
+    private void setupConfigWatcher() {
+        try {
+            this.configWatcher = new ConfigWatcher(this, configManager);
+            this.configWatcher.startWatching();
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Failed to initialize configuration watcher", e);
+        }
+    }
+
+    // Accessor methods (only include if needed externally)
     public ConfigManager getConfigManager() {
         return configManager;
-    }
-    
-    public LagEffectManager getLagEffectManager() {
-        return lagEffectManager;
-    }
-
-    public MenuManager getMenuManager() {
-        return menuManager;
-    }
-
-    public CrashManager getCrashManager() {
-        return crashManager;
-    }
-
-    public MenuBuilder getMenuBuilder() {
-        return menuBuilder;
     }
 }
