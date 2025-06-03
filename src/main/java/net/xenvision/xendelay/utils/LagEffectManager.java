@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
  * Uses UUID internally to avoid memory leaks.
  */
 public class LagEffectManager {
+    
     private final Plugin plugin;
     private final ConfigManager configManager;
     private final Map<UUID, BukkitRunnable> lagTasks = new ConcurrentHashMap<>();
@@ -47,18 +48,22 @@ public class LagEffectManager {
                     cancel();
                     return;
                 }
+                
                 if (lagDuration > 0 && timer >= Math.round(lagDuration * 20 / lagFrequency)) {
                     removeLag(uuid);
                     cancel();
                     return;
                 }
+                
                 p.teleport(p.getLocation().add(Math.random() * lagIntensity - (lagIntensity / 2), 0, Math.random() * lagIntensity - (lagIntensity / 2)));
                 if (enableLagMessages && Math.random() < lagMessageChance) {
                     configManager.sendMessage(p, "error_packet_loss", "");
                 }
+                
                 timer++;
             }
         };
+        
         lagTask.runTaskTimer(plugin, 0L, lagFrequency);
         lagTasks.put(uuid, lagTask);
     }
@@ -72,6 +77,7 @@ public class LagEffectManager {
 
     public void removeLag(UUID uuid) {
         BukkitRunnable task = lagTasks.remove(uuid);
+        
         if (task != null) {
             task.cancel();
         }
