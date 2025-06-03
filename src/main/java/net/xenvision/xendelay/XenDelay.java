@@ -7,12 +7,13 @@ import net.xenvision.xendelay.listeners.PlayerMovementListener;
 import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.LagEffectManager;
 import net.xenvision.xendelay.utils.MenuManager;
-import net.xenvision.xendelay.utils.CrashManager; // ДОБАВЛЕНО
+import net.xenvision.xendelay.utils.CrashManager;
 import net.xenvision.xendelay.gui.MenuBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class XenDelay extends JavaPlugin {
+
     private ConfigManager configManager;
     private LagEffectManager lagEffectManager;
     private ConfigWatcher configWatcher;
@@ -25,12 +26,12 @@ public class XenDelay extends JavaPlugin {
         this.configManager = new ConfigManager(this);
         this.lagEffectManager = new LagEffectManager(this, configManager);
         this.menuManager = new MenuManager(this);
-        this.crashManager = new CrashManager(); // ДОБАВЛЕНО
+        this.crashManager = new CrashManager();
         this.menuBuilder = new MenuBuilder(this, lagEffectManager, configManager, menuManager, crashManager);
 
-        // PlaceholderAPI
+        // Register PlaceholderAPI
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            new net.xenvision.xendelay.placeholder.XenDelayExpansion(lagEffectManager).register();
+            new XenDelayExpansion(lagEffectManager).register();
             getLogger().info("PlaceholderAPI hook registered!");
         }
 
@@ -40,7 +41,7 @@ public class XenDelay extends JavaPlugin {
         getServer().getPluginManager().registerEvents(menuBuilder, this);
 
         // Register command
-        XenDelayCommand command = new XenDelayCommand(configManager, lagEffectManager, menuBuilder, menuManager, crashManager); // ДОБАВЛЕНО crashManager
+        XenDelayCommand command = new XenDelayCommand(configManager, lagEffectManager, menuBuilder, menuManager, crashManager);
         getCommand("xendelay").setExecutor(command);
         getCommand("xendelay").setTabCompleter(command);
 
@@ -59,10 +60,20 @@ public class XenDelay extends JavaPlugin {
     public ConfigManager getConfigManager() {
         return configManager;
     }
+    
     public LagEffectManager getLagEffectManager() {
         return lagEffectManager;
     }
-    public MenuManager getMenuManager() { return menuManager; }
-    public CrashManager getCrashManager() { return crashManager; } // если нужно
-    public MenuBuilder getMenuBuilder() { return menuBuilder; }
+
+    public MenuManager getMenuManager() {
+        return menuManager;
+    }
+
+    public CrashManager getCrashManager() {
+        return crashManager;
+    }
+
+    public MenuBuilder getMenuBuilder() {
+        return menuBuilder;
+    }
 }
