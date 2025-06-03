@@ -11,6 +11,7 @@ import net.xenvision.xendelay.utils.ConfigManager;
  * Watches for config.yml changes and triggers reloads.
  */
 public class ConfigWatcher {
+
     private final JavaPlugin plugin;
     private final Path configPath;
     private final ConfigManager configManager;
@@ -29,11 +30,14 @@ public class ConfigWatcher {
         watchThread = new Thread(() -> {
             try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
                 configPath.getParent().register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+
                 while (running) {
                     WatchKey key = watchService.take();
+
                     for (WatchEvent<?> event : key.pollEvents()) {
                         if (event.context().toString().equals("config.yml")) {
                             plugin.getLogger().info("[XenDelay] Detected config.yml change, checking...");
+
                             File configFile = configPath.toFile();
                             if (configFile.exists() && configFile.length() > 0) {
                                 plugin.getLogger().info("[XenDelay] config.yml looks fine, reloading...");
@@ -46,6 +50,7 @@ public class ConfigWatcher {
                             }
                         }
                     }
+
                     key.reset();
                 }
             } catch (IOException | InterruptedException e) {
