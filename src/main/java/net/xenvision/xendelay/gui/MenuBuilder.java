@@ -4,9 +4,10 @@ import net.xenvision.xendelay.utils.LagEffectManager;
 import net.xenvision.xendelay.utils.ConfigManager;
 import net.xenvision.xendelay.utils.MenuManager;
 import net.xenvision.xendelay.utils.Colorizer;
-import net.xenvision.xendelay.utils.CrashManager; // ДОБАВЛЕНО
+import net.xenvision.xendelay.utils.CrashManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -19,35 +20,42 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class MenuBuilder implements Listener {
+
     private final LagEffectManager lagEffectManager;
     private final ConfigManager configManager;
     private final MenuManager menuManager;
     private final Plugin plugin;
-    private final CrashManager crashManager; // ДОБАВЛЕНО
+    private final CrashManager crashManager;
 
-    private final Map<UUID, String> openMenus = new HashMap<>();
-    private final Set<UUID> actionCooldown = new HashSet<>();
+    private final Map<UUID, String> openMenus = new ConcurrentHashMap<>();
+    private final Set<UUID> actionCooldown = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final long COOLDOWN_TICKS = 60L;
-    // Для хранения текущей страницы каждого админа
-    private final Map<UUID, Integer> adminPages = new HashMap<>();
-    // Кол-во слотов для игроков на одной странице (10..45 включительно = 36)
+    private final Map<UUID, Integer> adminPages = new ConcurrentHashMap<>();
     private static final int PLAYERS_PER_PAGE = 36;
     private static final int PLAYER_SLOT_START = 10;
     private static final int PLAYER_SLOT_END = 45;
-
-    // ДОБАВЬ crashManager в конструктор!
-    public MenuBuilder(Plugin plugin, LagEffectManager lagEffectManager, ConfigManager configManager, MenuManager menuManager, CrashManager crashManager) {
+    private final NamespacedKey playerUuidKey;
+    
+    // Cache for static menu items
+    private final Map<String, ItemStack> staticItemCache = new HashMap<>();
+    private FileConfiguration lastMenuConfig;
+    
+    public MenuBuilder(Plugin plugin, LagEffectManager lagEffectManager, ConfigManager configManager, 
+                      MenuManager menuManager, CrashManager crashManager) {
         this.plugin = plugin;
         this.lagEffectManager = lagEffectManager;
         this.configManager = configManager;
         this.menuManager = menuManager;
-        this.crashManager = crashManager; // ДОБАВЛЕНО
+        this.crashManager = crashManager;
+        this.playerUuidKey = new NamespacedKey(plugin, "player-uuid");
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
@@ -69,46 +77,70 @@ public class MenuBuilder implements Listener {
     public void open(Player admin, int page) {
         FileConfiguration menuConfig = menuManager.getMenuConfig();
         ConfigurationSection menu = menuConfig.getConfigurationSection("menu");
+
         if (menu == null) {
-            admin.sendMessage("§c[Ошибка] menu.yml не содержит секцию menu!");
+            admin.sendMessage("§c[Error] menu.yml does not contain a menu section!");
             return;
         }
+
         String title = Colorizer.colorize(menu.getString("title", "XenDelay Menu"));
         int size = menu.getInt("size", 54);
         Inventory inv = Bukkit.createInventory(null, size, title);
 
         ConfigurationSection playersSection = menu.getConfigurationSection("items.players");
-        Set<Integer> usedSlots = new HashSet<>();
-        List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
-        int totalPages = (int) Math.max(1, Math.ceil((double) onlinePlayers.size() / PLAYERS_PER_PAGE));
-        if (page >= totalPages) page = totalPages - 1;
-        if (page < 0) page = 0;
+        Set<Integer> usedSlots = new HashSet<>(PLAYERS_PER_PAGE + 10);
+        Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
+        int playerCount = onlinePlayers.size();
+        int totalPages = Math.max(1, (playerCount + PLAYERS_PER_PAGE - 1) / PLAYERS_PER_PAGE);
+        page = Math.max(0, Math.min(page, totalPages - 1));
         adminPages.put(admin.getUniqueId(), page);
 
-        // --- Динамические игроки с поддержкой страниц ---
+        // Dynamic player heads with pagination
         if (playersSection != null) {
             Material mat = Material.valueOf(playersSection.getString("material", "PLAYER_HEAD"));
             int from = page * PLAYERS_PER_PAGE;
-            int to = Math.min(from + PLAYERS_PER_PAGE, onlinePlayers.size());
-            List<Player> showPlayers = onlinePlayers.subList(from, to);
+            int to = Math.min(from + PLAYERS_PER_PAGE, playerCount);
             int slot = PLAYER_SLOT_START;
-            for (Player p : showPlayers) {
+
+            // Use iterator for efficient access
+            Iterator<? extends Player> playerIterator = onlinePlayers.iterator();
+            for (int i = 0; i < to; i++) {
+                Player p = playerIterator.next();
+                if (i < from) continue;
+
                 ItemStack skull = new ItemStack(mat);
                 SkullMeta meta = (SkullMeta) skull.getItemMeta();
+                if (meta == null) continue;
+                
                 meta.setOwningPlayer(p);
-                String status = lagEffectManager.isLagged(p) ? Colorizer.colorize("&#f75c47✔ Лагнут") : Colorizer.colorize("&#27e1c1✘ Норма");
-                String display = playersSection.getString("display", "%player_colored%")
-                        .replace("%player_colored%", (lagEffectManager.isLagged(p) ? Colorizer.colorize("&#f75c47") : Colorizer.colorize("&#27e1c1")) + p.getName());
+                String status = lagEffectManager.isLagged(p) ? 
+                    Colorizer.colorize("&#f75c47✔ Lagged") : 
+                    Colorizer.colorize("&#27e1c1✘ Normal");
+                
+                String displayTemplate = playersSection.getString("display", "%player_colored%");
+                String display = displayTemplate
+                    .replace("%player_colored%", (lagEffectManager.isLagged(p) ? 
+                        Colorizer.colorize("&#f75c47") : 
+                        Colorizer.colorize("&#27e1c1")) + p.getName());
+                
                 meta.setDisplayName(Colorizer.colorize(display));
-                List<String> lore = new ArrayList<>();
+
                 List<String> loreConfig = playersSection.getStringList("lore");
-                if (!loreConfig.isEmpty()) {
-                    for (String l : loreConfig) {
-                        lore.add(Colorizer.colorize(l.replace("%status%", status)));
-                    }
+                List<String> lore = new ArrayList<>(loreConfig.size());
+                for (String l : loreConfig) {
+                    lore.add(Colorizer.colorize(l.replace("%status%", status)));
                 }
+                
                 meta.setLore(lore);
                 hideFlags(meta);
+                
+                // Store player UUID in item metadata
+                meta.getPersistentDataContainer().set(
+                    playerUuidKey, 
+                    PersistentDataType.STRING, 
+                    p.getUniqueId().toString()
+                );
+                
                 skull.setItemMeta(meta);
                 if (slot > PLAYER_SLOT_END) break;
                 inv.setItem(slot, skull);
@@ -117,44 +149,68 @@ public class MenuBuilder implements Listener {
             }
         }
 
-        // --- Кастомные кнопки страниц ---
+        // Page navigation buttons
         ConfigurationSection itemsSection = menu.getConfigurationSection("items");
         if (itemsSection != null) {
-            // prev
+            // Invalidate cache when configuration changes
+            if (lastMenuConfig != menuConfig) {
+                staticItemCache.clear();
+                lastMenuConfig = menuConfig;
+            }
+
+            // Previous page button
             if (totalPages > 1 && page > 0 && itemsSection.isConfigurationSection("page_prev")) {
                 ConfigurationSection prevSec = itemsSection.getConfigurationSection("page_prev");
-                inv.setItem(prevSec.getInt("slot", 0), buildPageItem(prevSec, page + 1, totalPages));
+                int slot = prevSec.getInt("slot", 0);
+                inv.setItem(slot, buildPageItem(prevSec, page + 1, totalPages));
+                usedSlots.add(slot);
             }
-            // next
+
+            // Next page button
             if (totalPages > 1 && page < totalPages - 1 && itemsSection.isConfigurationSection("page_next")) {
                 ConfigurationSection nextSec = itemsSection.getConfigurationSection("page_next");
-                inv.setItem(nextSec.getInt("slot", 8), buildPageItem(nextSec, page + 1, totalPages));
+                int slot = nextSec.getInt("slot", 8);
+                inv.setItem(slot, buildPageItem(nextSec, page + 1, totalPages));
+                usedSlots.add(slot);
             }
-            // info — ВСЕГДА
+
+            // Page info button
             if (itemsSection.isConfigurationSection("page_info")) {
                 ConfigurationSection infoSec = itemsSection.getConfigurationSection("page_info");
-                inv.setItem(infoSec.getInt("slot", 4), buildPageItem(infoSec, page + 1, totalPages));
+                int slot = infoSec.getInt("slot", 4);
+                inv.setItem(slot, buildPageItem(infoSec, page + 1, totalPages));
+                usedSlots.add(slot);
             }
-        }
 
-        // --- Статика (unlagall, reload, close и др.) ---
-        if (itemsSection != null) {
+            // Static items with caching
             for (String key : itemsSection.getKeys(false)) {
                 if (key.equals("players") || key.startsWith("page_")) continue;
-                ConfigurationSection item = itemsSection.getConfigurationSection(key);
-                if (item == null) continue;
-                int slot = item.getInt("slot");
+                
+                ConfigurationSection itemSec = itemsSection.getConfigurationSection(key);
+                if (itemSec == null) continue;
+                
+                int slot = itemSec.getInt("slot");
                 if (usedSlots.contains(slot)) continue;
-                // Не даём пересечься с кнопками страниц (45, 49, 53)
-                if (isPageSlot(itemsSection, slot)) continue;
-                Material material = Material.valueOf(item.getString("material", "STONE"));
-                ItemStack stack = new ItemStack(material);
-                ItemMeta meta = stack.getItemMeta();
-                meta.setDisplayName(Colorizer.colorize(item.getString("display", key)));
-                meta.setLore(item.getStringList("lore").stream().map(Colorizer::colorize).collect(Collectors.toList()));
-                hideFlags(meta);
-                stack.setItemMeta(meta);
-                inv.setItem(slot, stack);
+                
+                // Use cached items when available
+                ItemStack item = staticItemCache.computeIfAbsent(key, k -> {
+                    Material material = Material.valueOf(itemSec.getString("material", "STONE"));
+                    ItemStack stack = new ItemStack(material);
+                    ItemMeta meta = stack.getItemMeta();
+                    if (meta == null) return stack;
+                    
+                    meta.setDisplayName(Colorizer.colorize(itemSec.getString("display", k)));
+                    List<String> lore = itemSec.getStringList("lore").stream()
+                        .map(Colorizer::colorize)
+                        .collect(Collectors.toList());
+                    meta.setLore(lore);
+                    hideFlags(meta);
+                    stack.setItemMeta(meta);
+                    return stack;
+                });
+                
+                inv.setItem(slot, item);
+                usedSlots.add(slot);
             }
         }
 
@@ -162,258 +218,241 @@ public class MenuBuilder implements Listener {
         openMenus.put(admin.getUniqueId(), title);
     }
 
-    // Хелпер для создания предмета страницы с подстановкой %page% и %total%
     private ItemStack buildPageItem(ConfigurationSection sec, int page, int total) {
         Material mat = Material.valueOf(sec.getString("material", "PAPER"));
         ItemStack stack = new ItemStack(mat);
         ItemMeta meta = stack.getItemMeta();
-        String display = sec.getString("display", "");
-        display = display.replace("%page%", String.valueOf(page)).replace("%total%", String.valueOf(total));
+        if (meta == null) return stack;
+        
+        String display = sec.getString("display", "")
+            .replace("%page%", String.valueOf(page))
+            .replace("%total%", String.valueOf(total));
+        
         meta.setDisplayName(Colorizer.colorize(display));
-        List<String> lore = new ArrayList<>();
-        for (String l : sec.getStringList("lore")) {
-            lore.add(Colorizer.colorize(l.replace("%page%", String.valueOf(page)).replace("%total%", String.valueOf(total))));
-        }
+
+        List<String> lore = sec.getStringList("lore").stream()
+            .map(l -> l.replace("%page%", String.valueOf(page))
+                      .replace("%total%", String.valueOf(total)))
+            .map(Colorizer::colorize)
+            .collect(Collectors.toList());
+        
         meta.setLore(lore);
         hideFlags(meta);
         stack.setItemMeta(meta);
-        return stack;
-    }
 
-    // Проверка, не является ли слот одним из page_ секций
-    private boolean isPageSlot(ConfigurationSection itemsSection, int slot) {
-        for (String key : itemsSection.getKeys(false)) {
-            if (!key.startsWith("page_")) continue;
-            ConfigurationSection sec = itemsSection.getConfigurationSection(key);
-            if (sec != null && sec.getInt("slot") == slot) return true;
-        }
-        return false;
+        return stack;
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (!(e.getWhoClicked() instanceof Player)) return;
-        Player admin = (Player) e.getWhoClicked();
+        if (!(e.getWhoClicked() instanceof Player admin)) return;
+        
+        UUID adminId = admin.getUniqueId();
         String invTitle = e.getView().getTitle();
-        if (!openMenus.getOrDefault(admin.getUniqueId(), "").equals(invTitle)) return;
+        if (!invTitle.equals(openMenus.get(adminId))) return;
 
-        if (actionCooldown.contains(admin.getUniqueId())) {
+        if (actionCooldown.contains(adminId)) {
             configManager.sendMessage(admin, "cooldown");
             e.setCancelled(true);
             return;
         }
-        // УБРАНО: actionCooldown.add(admin.getUniqueId());
-        e.setCancelled(true);
 
+        e.setCancelled(true);
         ItemStack clicked = e.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta()) {
-            return; // просто return, кулдаун не ставим
-        }
-        ItemMeta meta = clicked.getItemMeta();
-        String name = meta.getDisplayName();
+        if (clicked == null || !clicked.hasItemMeta()) return;
 
         int slot = e.getRawSlot();
         FileConfiguration menuConfig = menuManager.getMenuConfig();
         ConfigurationSection menu = menuConfig.getConfigurationSection("menu");
-        if (menu == null) {
-            return;
-        }
+        if (menu == null) return;
+
         ConfigurationSection itemsSection = menu.getConfigurationSection("items");
-        String keyAction = null;
-        ConfigurationSection itemSection = null;
+        if (itemsSection == null) return;
 
-        Integer page = adminPages.getOrDefault(admin.getUniqueId(), 0);
-        List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
-        int totalPages = (int) Math.max(1, Math.ceil((double) onlinePlayers.size() / PLAYERS_PER_PAGE));
+        int page = adminPages.getOrDefault(adminId, 0);
+        int playerCount = Bukkit.getOnlinePlayers().size();
+        int totalPages = Math.max(1, (playerCount + PLAYERS_PER_PAGE - 1) / PLAYERS_PER_PAGE);
 
-        // --- Обработка кастомных page_ кнопок ---
-        if (itemsSection != null) {
-            // prev
-            if (page > 0 && itemsSection.isConfigurationSection("page_prev")) {
-                ConfigurationSection prevSec = itemsSection.getConfigurationSection("page_prev");
-                if (slot == prevSec.getInt("slot", 45)) {
-                    actionCooldown.add(admin.getUniqueId());
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page - 1), 1L);
-                    removeCooldownLater(admin, COOLDOWN_TICKS);
-                    return;
-                }
+        // Handle page navigation buttons
+        if (itemsSection.isConfigurationSection("page_prev") && 
+            slot == itemsSection.getConfigurationSection("page_prev").getInt("slot", 45)) {
+            if (page > 0) {
+                scheduleOpen(admin, page - 1);
             }
-            // next
-            if (page < totalPages - 1 && itemsSection.isConfigurationSection("page_next")) {
-                ConfigurationSection nextSec = itemsSection.getConfigurationSection("page_next");
-                if (slot == nextSec.getInt("slot", 53)) {
-                    actionCooldown.add(admin.getUniqueId());
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page + 1), 1L);
-                    removeCooldownLater(admin, COOLDOWN_TICKS);
-                    return;
-                }
-            }
-            // info -- обычно ничего не делает, просто return
-            if (itemsSection.isConfigurationSection("page_info")) {
-                ConfigurationSection infoSec = itemsSection.getConfigurationSection("page_info");
-                if (slot == infoSec.getInt("slot", 49)) {
-                    actionCooldown.add(admin.getUniqueId());
-                    removeCooldownLater(admin, COOLDOWN_TICKS);
-                    return;
-                }
-            }
-        }
-
-        // --- Динамические игроки ---
-        assert itemsSection != null;
-        ConfigurationSection playersSection = itemsSection.getConfigurationSection("players");
-        assert playersSection != null;
-
-        if (slot >= PLAYER_SLOT_START && slot <= PLAYER_SLOT_END && clicked.getType() == Material.PLAYER_HEAD) {
-            itemSection = playersSection;
-            keyAction = "players";
-        } else {
-            for (String key : itemsSection.getKeys(false)) {
-                if (key.equals("players") || key.startsWith("page_")) continue;
-                ConfigurationSection it = itemsSection.getConfigurationSection(key);
-                if (it != null && it.getInt("slot") == slot) {
-                    itemSection = it;
-                    keyAction = key;
-                    break;
-                }
-            }
-        }
-        if (itemSection == null) {
+            
             return;
         }
 
-        ConfigurationSection actions = itemSection.getConfigurationSection("actions");
-        String action = null;
-        ClickType click = e.getClick();
-        if (actions != null) {
-            switch (click) {
-                case LEFT:
-                    if (actions.contains("left")) action = actions.getString("left");
-                    break;
-                case RIGHT:
-                    if (actions.contains("right")) action = actions.getString("right");
-                    break;
-                case SHIFT_LEFT:
-                    if (actions.contains("shift_left")) action = actions.getString("shift_left");
-                    break;
-                case SHIFT_RIGHT:
-                    if (actions.contains("shift_right")) action = actions.getString("shift_right");
-                    break;
-                case MIDDLE:
-                    if (actions.contains("middle")) action = actions.getString("middle");
-                    break;
-                default:
-                    break;
+        if (itemsSection.isConfigurationSection("page_next") && 
+            slot == itemsSection.getConfigurationSection("page_next").getInt("slot", 53)) {
+            if (page < totalPages - 1) {
+                scheduleOpen(admin, page + 1);
             }
-        }
-
-        if (action == null) {
+            
             return;
         }
-        actionCooldown.add(admin.getUniqueId()); // <--- Теперь кулдаун ставится только если действие есть!
-        switch (action) {
-            case "toggle_lag": {
-                String playerName = org.bukkit.ChatColor.stripColor(name);
-                Player target = Bukkit.getPlayerExact(playerName);
-                if (target == null) {
-                    configManager.sendMessage(admin, "player_not_found", playerName);
-                    removeCooldownLater(admin, COOLDOWN_TICKS);
-                    return;
-                }
-                if (!lagEffectManager.isLagged(target)) {
-                    lagEffectManager.applyLag(target);
-                    configManager.sendMessage(admin, "lag_applied", target.getName());
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page), 1L);
-                } else {
-                    configManager.sendMessage(admin, "lag_already_applied", target.getName());
-                }
-                removeCooldownLater(admin, COOLDOWN_TICKS);
-                return;
-            }
-            case "toggle_unlag": {
-                String playerName = org.bukkit.ChatColor.stripColor(name);
-                Player target = Bukkit.getPlayerExact(playerName);
-                if (target == null) {
-                    configManager.sendMessage(admin, "player_not_found", playerName);
-                    removeCooldownLater(admin, COOLDOWN_TICKS);
-                    return;
-                }
-                if (lagEffectManager.isLagged(target)) {
-                    lagEffectManager.removeLag(target);
-                    configManager.sendMessage(admin, "lag_removed", target.getName());
-                } else {
-                    configManager.sendMessage(admin, "lag_already_removed", target.getName());
-                }
-                Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page), 3L);
-                removeCooldownLater(admin, COOLDOWN_TICKS);
-                break;
-            }
-            case "unlag_all": {
-                lagEffectManager.removeLagFromAll();
-                configManager.sendMessage(admin, "lag_removed_all");
-                Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page), 1L);
-                removeCooldownLater(admin, COOLDOWN_TICKS);
-                break;
-            }
-            case "reload_config": {
-                configManager.reloadConfig();
-                menuManager.reloadMenu();
-                configManager.sendMessage(admin, "reload_success");
-                Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page), 1L);
-                removeCooldownLater(admin, COOLDOWN_TICKS);
-                break;
-            }
-            case "close": {
-                admin.closeInventory();
-                removeCooldownLater(admin, COOLDOWN_TICKS);
-                break;
-            }
-            case "crash_entity": { // ДОБАВЛЕНО
-                String playerName = org.bukkit.ChatColor.stripColor(name);
-                Player target = Bukkit.getPlayerExact(playerName);
-                if (target == null) {
-                    configManager.sendMessage(admin, "player_not_found", playerName);
-                    removeCooldownLater(admin, COOLDOWN_TICKS);
-                    return;
-                }
-                crashManager.crashPlayer(target, CrashManager.CrashType.ENTITY);
-                configManager.sendMessage(admin, "crashed_entity", target.getName());
-                removeCooldownLater(admin, COOLDOWN_TICKS);
-                return;
-            }
-            case "crash_sign": { // ДОБАВЛЕНО
-                String playerName = org.bukkit.ChatColor.stripColor(name);
-                Player target = Bukkit.getPlayerExact(playerName);
-                if (target == null) {
-                    configManager.sendMessage(admin, "player_not_found", playerName);
-                    removeCooldownLater(admin, COOLDOWN_TICKS);
-                    return;
-                }
-                crashManager.crashPlayer(target, CrashManager.CrashType.SIGN);
-                configManager.sendMessage(admin, "crashed_sign", target.getName());
-                removeCooldownLater(admin, COOLDOWN_TICKS);
-                return;
-            }
-            case "crash_payload": { // ДОБАВЛЕНО ДЛЯ MIDDLE
-                String playerName = org.bukkit.ChatColor.stripColor(name);
-                Player target = Bukkit.getPlayerExact(playerName);
-                if (target == null) {
-                    configManager.sendMessage(admin, "player_not_found", playerName);
-                    removeCooldownLater(admin, COOLDOWN_TICKS);
-                    return;
-                }
-                crashManager.crashPlayer(target, CrashManager.CrashType.PAYLOAD);
-                configManager.sendMessage(admin, "crashed_payload", target.getName());
-                removeCooldownLater(admin, COOLDOWN_TICKS);
-                return;
-            }
-            default:
-                admin.sendMessage("§e[INFO] Неизвестное действие: " + action);
-                removeCooldownLater(admin, COOLDOWN_TICKS);
+
+        if (itemsSection.isConfigurationSection("page_info") && 
+            slot == itemsSection.getConfigurationSection("page_info").getInt("slot", 49)) {
+            setCooldown(adminId);
+            return;
+        }
+
+        // Handle player head clicks
+        if (slot >= PLAYER_SLOT_START && slot <= PLAYER_SLOT_END && 
+            clicked.getType() == Material.PLAYER_HEAD) {
+            
+            ItemMeta meta = clicked.getItemMeta();
+            String uuidString = meta.getPersistentDataContainer().get(playerUuidKey, PersistentDataType.STRING);
+            if (uuidString == null) return;
+            
+            UUID targetUuid = UUID.fromString(uuidString);
+            Player target = Bukkit.getPlayer(targetUuid);
+            handlePlayerAction(e.getClick(), admin, target, itemsSection, page);
+            return;
+        }
+
+        // Handle static item clicks
+        for (String key : itemsSection.getKeys(false)) {
+            if (key.equals("players") || key.startsWith("page_")) continue;
+            
+            ConfigurationSection itemSec = itemsSection.getConfigurationSection(key);
+            if (itemSec == null || itemSec.getInt("slot") != slot) continue;
+            
+            handleStaticItemAction(e.getClick(), admin, itemSec, page);
+            break;
         }
     }
 
-    private void removeCooldownLater(Player admin, long ticks) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> actionCooldown.remove(admin.getUniqueId()), ticks);
+    private void handlePlayerAction(ClickType click, Player admin, Player target, 
+                                   ConfigurationSection itemsSection, int page) {
+        if (target == null || !target.isOnline()) {
+            configManager.sendMessage(admin, "player_not_found");
+            setCooldown(admin.getUniqueId());
+            return;
+        }
+
+        ConfigurationSection playersSection = itemsSection.getConfigurationSection("players");
+        if (playersSection == null) return;
+        
+        ConfigurationSection actions = playersSection.getConfigurationSection("actions");
+        if (actions == null) return;
+        
+        String action = getActionForClick(click, actions);
+        if (action == null) return;
+
+        executeAction(action, admin, target, page);
+    }
+
+    private void handleStaticItemAction(ClickType click, Player admin, 
+                                       ConfigurationSection itemSec, int page) {
+        ConfigurationSection actions = itemSec.getConfigurationSection("actions");
+        if (actions == null) return;
+        
+        String action = getActionForClick(click, actions);
+        if (action == null) return;
+
+        executeAction(action, admin, null, page);
+    }
+
+    private String getActionForClick(ClickType click, ConfigurationSection actions) {
+        return switch (click) {
+            case LEFT -> actions.getString("left");
+            case RIGHT -> actions.getString("right");
+            case SHIFT_LEFT -> actions.getString("shift_left");
+            case SHIFT_RIGHT -> actions.getString("shift_right");
+            case MIDDLE -> actions.getString("middle");
+            default -> null;
+        };
+    }
+
+    private void executeAction(String action, Player admin, Player target, int page) {
+        UUID adminId = admin.getUniqueId();
+        setCooldown(adminId);
+
+        switch (action) {
+            case "toggle_lag" -> handleToggleLag(admin, target, page);
+            case "toggle_unlag" -> handleToggleUnlag(admin, target, page);
+            case "unlag_all" -> handleUnlagAll(admin, page);
+            case "reload_config" -> handleReloadConfig(admin, page);
+            case "close" -> handleClose(admin);
+            case "crash_entity" -> handleCrash(admin, target, CrashManager.CrashType.ENTITY);
+            case "crash_sign" -> handleCrash(admin, target, CrashManager.CrashType.SIGN);
+            case "crash_payload" -> handleCrash(admin, target, CrashManager.CrashType.PAYLOAD);
+            default -> admin.sendMessage("§e[INFO] Unknown action: " + action);
+        }
+    }
+
+    private void handleToggleLag(Player admin, Player target, int page) {
+        if (lagEffectManager.isLagged(target)) {
+            configManager.sendMessage(admin, "lag_already_applied", target.getName());
+        } else {
+            lagEffectManager.applyLag(target);
+            configManager.sendMessage(admin, "lag_applied", target.getName());
+            scheduleOpen(admin, page);
+        }
+    }
+
+    private void handleToggleUnlag(Player admin, Player target, int page) {
+        if (!lagEffectManager.isLagged(target)) {
+            configManager.sendMessage(admin, "lag_already_removed", target.getName());
+        } else {
+            lagEffectManager.removeLag(target);
+            configManager.sendMessage(admin, "lag_removed", target.getName());
+        }
+        
+        scheduleOpen(admin, page, 3L);
+    }
+
+    private void handleUnlagAll(Player admin, int page) {
+        lagEffectManager.removeLagFromAll();
+        configManager.sendMessage(admin, "lag_removed_all");
+        scheduleOpen(admin, page);
+    }
+
+    private void handleReloadConfig(Player admin, int page) {
+        configManager.reloadConfig();
+        menuManager.reloadMenu();
+        staticItemCache.clear();
+        configManager.sendMessage(admin, "reload_success");
+        scheduleOpen(admin, page);
+    }
+
+    private void handleClose(Player admin) {
+        admin.closeInventory();
+    }
+
+    private void handleCrash(Player admin, Player target, CrashManager.CrashType crashType) {
+        if (target == null || !target.isOnline()) {
+            configManager.sendMessage(admin, "player_not_found");
+            return;
+        }
+        
+        crashManager.crashPlayer(target, crashType);
+        
+        String messageKey = switch (crashType) {
+            case ENTITY -> "crashed_entity";
+            case SIGN -> "crashed_sign";
+            case PAYLOAD -> "crashed_payload";
+            default -> "crashed";
+        };
+        
+        configManager.sendMessage(admin, messageKey, target.getName());
+    }
+
+    private void scheduleOpen(Player admin, int page) {
+        scheduleOpen(admin, page, 1L);
+    }
+
+    private void scheduleOpen(Player admin, int page, long delay) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> open(admin, page), delay);
+    }
+
+    private void setCooldown(UUID playerId) {
+        actionCooldown.add(playerId);
+        Bukkit.getScheduler().runTaskLater(plugin, 
+            () -> actionCooldown.remove(playerId), 
+            COOLDOWN_TICKS
+        );
     }
 }
