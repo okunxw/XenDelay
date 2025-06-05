@@ -6,52 +6,62 @@ import org.bukkit.ChatColor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Utility class for colorizing strings with Bukkit color codes and hex support.
- */
 public class Colorizer {
-    private static final Pattern HEX_PATTERN = Pattern.compile("&#([a-fA-F\\d]{6})");
 
-    /**
-     * Colorizes a string, supporting both &-codes and hex color codes (&#RRGGBB).
-     * For legacy versions of Minecraft, hex codes will be ignored.
-     *
-     * @param str Input string
-     * @return Colorized string
-     */
-    public static String colorize(String str) {
-        if (str == null || str.isEmpty()) return "";
-
-        String result = str;
-        // Detect server version for hex support (1.16+)
-        boolean supportsHex = isHexSupported();
-
-        if (supportsHex) {
-            Matcher matcher = HEX_PATTERN.matcher(result);
-            StringBuffer buffer = new StringBuffer();
-            while (matcher.find()) {
-                String hexCode = matcher.group(1);
-                StringBuilder replacement = new StringBuilder("§x");
-                for (char c : hexCode.toCharArray()) {
-                    replacement.append('§').append(c);
-                }
-                matcher.appendReplacement(buffer, replacement.toString());
-            }
-            matcher.appendTail(buffer);
-            result = buffer.toString();
-        }
-        return ChatColor.translateAlternateColorCodes('&', result);
-    }
+    private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f\\d]{6})");
+    private static final boolean SUPPORTS_HEX = isHexSupported();
 
     private static boolean isHexSupported() {
-        // 1.16+ supports hex; you may want to cache this result
-        String version = Bukkit.getBukkitVersion().split("-")[0];
-        String[] parts = version.split("\\.");
+        String version = Bukkit.getBukkitVersion();
+        int majorVersion = parseMajorVersion(version);
+        return majorVersion >= 16;
+    }
+
+    private static int parseMajorVersion(String version) {
         try {
-            int major = Integer.parseInt(parts[1]);
-            return major >= 16;
-        } catch (Exception e) {
-            return false;
+            String[] parts = version.split("[-.]");
+
+            if (parts.length > 1) {
+                return Integer.parseInt(parts[1]);
+            }
+
+        } catch (NumberFormatException ignored) {
         }
+
+        return 0;
+    }
+
+    public static String colorize(String str) {
+        if (str == null || str.isEmpty()) {
+            return "";
+        }
+
+        String processed = str;
+        if (SUPPORTS_HEX && str.contains("&#")) {
+            processed = processHexCodes(str);
+        }
+
+        return ChatColor.translateAlternateColorCodes('&', processed);
+    }
+
+    private static String processHexCodes(String str) {
+        Matcher matcher = HEX_PATTERN.matcher(str);
+        StringBuilder builder = new StringBuilder(str.length() + 32);
+
+        while (matcher.find()) {
+            String hex = matcher.group(1);
+            StringBuilder replacement = new StringBuilder(14); // §x§R§R§G§G§B§B
+            replacement.append("§x");
+
+            for (int i = 0; i < hex.length(); i++) {
+                replacement.append('§').append(hex.charAt(i));
+            }
+
+            matcher.appendReplacement(builder, replacement.toString());
+        }
+
+        matcher.appendTail(builder);
+
+        return builder.toString();
     }
 }
