@@ -1,5 +1,5 @@
 name: XenDelay
-version: '2.1.0'
+version: '2.1.1'
 main: net.xenvision.xendelay.XenDelay
 api-version: '1.16'
 authors: [XenVision]

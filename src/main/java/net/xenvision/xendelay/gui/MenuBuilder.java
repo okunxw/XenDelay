@@ -273,13 +273,12 @@ public class MenuBuilder implements Listener {
         int playerCount = Bukkit.getOnlinePlayers().size();
         int totalPages = Math.max(1, (playerCount + PLAYERS_PER_PAGE - 1) / PLAYERS_PER_PAGE);
 
-        // Handle page navigation buttons
+        // Handle page navigation buttons (NO cooldown)
         if (itemsSection.isConfigurationSection("page_prev") &&
                 slot == itemsSection.getConfigurationSection("page_prev").getInt("slot", 45)) {
             if (page > 0) {
                 scheduleOpen(admin, page - 1);
             }
-
             return;
         }
 
@@ -288,13 +287,13 @@ public class MenuBuilder implements Listener {
             if (page < totalPages - 1) {
                 scheduleOpen(admin, page + 1);
             }
-
             return;
         }
 
+        // Page info button — NO cooldown (убираем setCooldown)
         if (itemsSection.isConfigurationSection("page_info") &&
                 slot == itemsSection.getConfigurationSection("page_info").getInt("slot", 49)) {
-            setCooldown(adminId);
+            // Можно тут отобразить инфо, если нужно, но кулдаун не вешаем!
             return;
         }
 
@@ -328,7 +327,7 @@ public class MenuBuilder implements Listener {
                                     ConfigurationSection itemsSection, int page) {
         if (target == null || !target.isOnline()) {
             configManager.sendMessage(admin, "player_not_found");
-            setCooldown(admin.getUniqueId());
+            // НЕ вешаем кулдаун на ошибку!
             return;
         }
 
@@ -368,7 +367,13 @@ public class MenuBuilder implements Listener {
 
     private void executeAction(String action, Player admin, Player target, int page) {
         UUID adminId = admin.getUniqueId();
-        setCooldown(adminId);
+        // Кулдаун только для действий, реально изменяющих состояние
+        boolean shouldCooldown = switch (action) {
+            case "toggle_lag", "toggle_unlag", "unlag_all", "reload_config",
+                 "crash_entity", "crash_sign", "crash_payload" -> true;
+            default -> false;
+        };
+        if (shouldCooldown) setCooldown(adminId);
 
         switch (action) {
             case "toggle_lag" -> handleToggleLag(admin, target, page);
